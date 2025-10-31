@@ -6,6 +6,14 @@ p.init()
 
 class screen:
     def __init__(self, width, height, event_listeners, BGC=(0, 0, 0), fps=60):
+        """
+        Screen
+        -
+        width, height : the size of the screen
+        event_listeners : array of the different event listeners
+        BGC : background color
+        fps : target fps
+        """
         self.comp_handler = ch()
 
         self.fps = fps

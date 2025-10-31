@@ -1,5 +1,13 @@
 class component:
     def __init__(self, pos: list[int, int], size:list[int, int], options, color=(0, 0, 0)):
+        """
+        screen component
+        -
+        pos : position of component (left, top).
+        size : size of component (width, height).
+        options : optionals such as "event", "efunc", etc.
+        color : color of the component.
+        """
         self.pos = pos
         self.size = size
         self.color = color
