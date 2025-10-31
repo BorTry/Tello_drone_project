@@ -15,9 +15,21 @@ class component:
         self.event_function = None
         self.event_listener = None
 
+        self.contains_text = False
+        self.text = None
+
+        self.id = None
+
         if "event" in options:
             self.event_listener = options["event"]
             self.event_function = options["efunc"]
 
+        if "text" in options:
+            self.text = options["text"]
+            self.contains_text = True
+
     def get_rect(self):
         return (*self.pos, *self.size)
+    
+    def set_id(self, id):
+        self.id = id
