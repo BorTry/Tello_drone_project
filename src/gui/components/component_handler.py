@@ -25,6 +25,7 @@ class component_handler:
     def has_event(self, event_name):
         return event_name in self.event_comps
 
-    def run_event(self, event_name):
-        for component in self.event_comps[event_name]:
-            component.event_function(component)
+    def run_event(self, listener):
+        for comp in self.event_comps[listener.type]:
+            if (listener.check(comp)):
+                comp.event_function(comp)

@@ -5,11 +5,13 @@ from gui.components.component import component
 p.init()
 
 class screen:
-    def __init__(self, width, height, BGC=(0, 0, 0), fps=60):
+    def __init__(self, width, height, event_listeners, BGC=(0, 0, 0), fps=60):
         self.comp_handler = ch()
 
         self.fps = fps
         self.clock = p.time.Clock()
+
+        self.event_listeners = event_listeners
 
         self.screen = p.display.set_mode([width, height])
         self.screen.fill(BGC)
@@ -17,7 +19,7 @@ class screen:
 
     def run(self):
         while True:
-            self.handle_events()
+            if (self.handle_events()): break
             self.comp_handler.run(self.screen)
 
             for event in p.event.get():
@@ -31,8 +33,11 @@ class screen:
 
     def handle_events(self):
         for event in p.event.get():
-            match event.type:
-                case p.MOUSEBUTTONDOWN:
-                    if not self.comp_handler.has_event("on_click"):
-                        continue
-                    self.comp_handler.run_event("on_click")
+            for listener in self.event_listeners:
+                if (listener.is_same(event.type)):
+                    self.comp_handler.run_event(listener)
+            
+            if event.type == p.QUIT:
+                p.quit()
+                return True
+        return False
