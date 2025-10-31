@@ -1,6 +1,7 @@
 from pygame import mouse, MOUSEBUTTONDOWN
 from gui.event_listener import event_listener
-# A bunch of pre-defined listeners
+
+# A list of pre-defined listeners
 
 def mouse_collides(comp):
     mouse_pos = mouse.get_pos()
