@@ -48,25 +48,26 @@ class recognition_wrapper:
         
         cv2.imshow(self.name, frame)
 
-def main():
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+if __name__ == "__main__":
+    def main():
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
-    def image_proc(frame):
-        return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        def image_proc(frame):
+            return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    def detection(frame):
-        return face_cascade.detectMultiScale(
-            frame,
-            scaleFactor=1.1,     # image pyramid step
-            minNeighbors=5,      # higher = fewer (more confident) detections
-            minSize=(40, 40)     # ignore tiny detections
-        )
+        def detection(frame):
+            return face_cascade.detectMultiScale(
+                frame,
+                scaleFactor=1.1,     # image pyramid step
+                minNeighbors=5,      # higher = fewer (more confident) detections
+                minSize=(40, 40)     # ignore tiny detections
+            )
 
-    cam = recognition_wrapper(lambda:cv2.VideoCapture(1, cv2.CAP_AVFOUNDATION), lambda cap: cap.read(), image_proc, detection, run_once=True)
+        cam = recognition_wrapper(lambda:cv2.VideoCapture(1, cv2.CAP_AVFOUNDATION), lambda cap: cap.read(), image_proc, detection, run_once=True)
 
-    while True:
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        cam.run()
+        while True:
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            cam.run()
 
-main()
+    main()
