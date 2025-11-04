@@ -60,10 +60,10 @@ if __name__ == "__main__":
                 frame,
                 scaleFactor=1.1,     # image pyramid step
                 minNeighbors=5,      # higher = fewer (more confident) detections
-                minSize=(40, 40)     # ignore tiny detections
+                minSize=(100, 100)     # ignore tiny detections
             )
 
-        cam = recognition_wrapper(lambda:cv2.VideoCapture(1, cv2.CAP_AVFOUNDATION), lambda cap: cap.read(), image_proc, detection, run_once=True)
+        cam = recognition_wrapper(lambda:cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION), lambda cap: cap.read(), image_proc, detection, run_once=True)
 
         while True:
             if cv2.waitKey(1) & 0xFF == ord('q'):
