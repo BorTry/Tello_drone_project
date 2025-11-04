@@ -1,7 +1,8 @@
 from queue import Queue
 from socket import socket, AF_INET, SOCK_DGRAM
-from threading import Thread
+from threading import Thread, Event
 
+import time
 
 BUFFER_SIZE = 2048
 
@@ -9,7 +10,7 @@ class server:
     """
     o
 
-    Creates a UDP connection between a pc and a Tello drone. Is meant to be ran on another Thread.
+    Creates a UDP connection between a pc and a Tello drone.
     """
 
     def __init__(self, pipe:Queue, local_address:list[str, int], listen_address:list[str, int]):
@@ -26,29 +27,57 @@ class server:
 
         self.socket.bind(local_address)
 
-    def listen(self):
-        data, address = self.socket.recvfrom(BUFFER_SIZE)
+        self.kill_thread = Event()
+        self.listen_thread = None
 
-        pipe.put(data.decode(encoding="utf-8")) # put the recieved data into a pipe
+    def listen(self):
+        pipe = self.pipe
+
+        def wrap():
+            self.socket.settimeout(0.5)
+            
+            while not self.kill_thread.is_set():
+                try:
+                    data, address = self.socket.recvfrom(BUFFER_SIZE)
+
+                    pipe.put(data.decode(encoding="utf-8")) # put the recieved data into a pipe
+                except TimeoutError:
+                    continue
+
+        self.listen_thread = Thread(target=wrap)
+        self.listen_thread.start()
 
     def send(self, msg):
         self.socket.sendto(msg.encode(encoding="utf-8"), self.listen_address)
 
     def get_next(self):
         return None if self.pipe.empty() else self.pipe.get()
+    
+    def stop(self):
+        print("Stopping socket server...")
+        self.kill_thread.set()
+
+        if (self.listen_thread.is_alive()):
+            print("Waiting for thread...")
+            self.listen_thread.join()
+
+        self.socket.close()
+
+        print("Successfully stopped socket server.")
+
 
 if __name__ == "__main__":
     pipe = Queue(10)
 
-    test = server(pipe, ("127.0.0.1", 8000), ("127.0.0.1", 9000))
-    test2 = server(pipe, ("127.0.0.1", 9000), ("127.0.0.1", 8000))
+    test = server(pipe, ("127.0.0.1", 8000), ("127.0.0.1", 8000))
 
-    dooga = Thread(target=test.listen)
+    test.listen()
 
-    dooga.start()
+    test.send("oogabooga")
+    test.send("oogabooga")
+    test.send("oogabooga")
+    test.send("oogabooga")
 
-    test2.send("oogabooga")
+    print(test.get_next())
 
-    dooga.join()
-
-    print(pipe.get())
+    test.stop()
