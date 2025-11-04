@@ -13,7 +13,7 @@ class server:
     Creates a UDP connection between a pc and a Tello drone.
     """
 
-    def __init__(self, pipe:Queue, local_address:list[str, int], listen_address:list[str, int]):
+    def __init__(self, pipe:Queue, local_address:tuple[str, int], listen_address:tuple[str, int]=None):
         """
         Server
         - 
@@ -31,16 +31,18 @@ class server:
         self.listen_thread = None
 
     def listen(self):
-        pipe = self.pipe
-
+        if not self.listen_address:
+            print("listen address not defined.")
+            return
+        
         def wrap():
             self.socket.settimeout(0.5)
-            
+
             while not self.kill_thread.is_set():
                 try:
                     data, address = self.socket.recvfrom(BUFFER_SIZE)
 
-                    pipe.put(data.decode(encoding="utf-8")) # put the recieved data into a pipe
+                    self.pipe.put(data.decode(encoding="utf-8")) # put the recieved data into a pipe
                 except TimeoutError:
                     continue
 

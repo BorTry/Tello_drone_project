@@ -1,5 +1,5 @@
 class component:
-    def __init__(self, pos: list[int, int], size:list[int, int], options, color=(0, 0, 0)):
+    def __init__(self, pos: tuple[int, int], size:tuple[int, int], options, color=(0, 0, 0)):
         """
         screen component
         -
