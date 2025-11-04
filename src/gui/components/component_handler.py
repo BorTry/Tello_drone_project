@@ -2,7 +2,8 @@ from gui.components import component
 from pygame import draw, display as di, font as f
 
 f.init()
-FONT = f.SysFont("consolas", 28)
+FONT_SIZE = 28
+FONT = f.SysFont("arial", FONT_SIZE)
 
 class component_handler:
     def __init__(self):
@@ -13,7 +14,7 @@ class component_handler:
 
     def add(self, comp:component):
         self.components.append(comp)
-        
+
         comp.set_id(self.current_id)
         self.current_id += 1
 
@@ -31,7 +32,10 @@ class component_handler:
             # check if the component contains text
             if (component.contains_text):
                 txt = FONT.render(component.text, True, (0, 0, 0))
-                display.blit(txt, (component.pos[0], component.pos[1]))
+                display.blit(txt, (
+                    component.pos[0] + (component.size[0] // 2) - txt.get_width()//2, 
+                    component.pos[1] + (component.size[1] // 2) - FONT_SIZE//2)
+                )
 
         di.flip()
 
