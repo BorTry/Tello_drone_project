@@ -14,6 +14,8 @@ class screen:
         BGC : background color
         fps : target fps
         """
+        self.size = (width, height)
+
         self.comp_handler = ch()
 
         self.fps = fps
