@@ -8,6 +8,32 @@ def generator(gen_func, gen_val, run_once):
 
 class recognition_wrapper:
     def __init__(self, init_func, get_image_func, processing_func, detection_func, run_once=False, name="webcam"):
+        """
+        Creates a wrapper for cv2 detection
+
+        required:
+        - init_func: Function for getting the capturing instance (camera, image)
+        - get_image_func: Function for extracting the image from the capturing instance.
+            - input:
+                - capturing instance.
+            - output:
+                - boolean if the data got successfully returned.
+                - image.
+        - processing_func: 
+            - input:
+                - image.
+            - output:
+                - processed image.
+        - detection_func: 
+            - input:
+                - processed image.
+            - output:
+                - detected objects. (The top left, and size) optionally confidence score and label
+
+        optional:
+        - run_once: If the init_func has to be run every iteration
+        - name: The name for the wrapper
+        """
         self.init_val = init_func()
 
         self.gen = generator(init_func, self.init_val, run_once)
