@@ -6,6 +6,11 @@ FONT_SIZE = 28
 FONT = f.SysFont("arial", FONT_SIZE)
 
 class component_handler:
+    """
+    Component handler
+
+    handles all draw calls for the components given to it
+    """
     def __init__(self):
         self.components = []
 
