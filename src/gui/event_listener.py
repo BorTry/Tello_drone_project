@@ -5,15 +5,13 @@ class event_listener:
     def __init__(self, event_name:str, event_code:int, check_func=None):
         """
         Basic event listener.
-        -
+
         required:
-        -
-        event_name : name of the event.
-        event_code : code for the event.
+        - event_name : name of the event.
+        - event_code : code for the event.
     
-        optional
-        -
-        check_func: function which describes if the listener should trigger
+        optional:
+        - check_func: function which describes if the listener should trigger
         """
         self.name = event_name
         self.type = event_code

@@ -1,7 +1,17 @@
 import time
 
 class drone:
+    """
+    Interface for the Tello drone
+    """
     def __init__(self, sock, tello_address):
+        """
+        Tello drone
+
+        required:
+        - sock: A socket connection to send the data to the drone
+        - tello_address: The drone address (IP, PORT)
+        """
         self.sock = sock
         self.tello_address = tello_address
 
