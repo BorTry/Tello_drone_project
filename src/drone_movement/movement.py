@@ -15,10 +15,10 @@ class drone:
         self.sock = sock
         self.tello_address = tello_address
 
-        sock.sendto(b"command", tello_address) # gå i SDK modus for pre-programerte bevegelser i python
+        sock.send(b"command") # gå i SDK modus for pre-programerte bevegelser i python
 
     def send(self, cmd, wait = 0):
-        self.sock.sendto(cmd.encode("utf-8"), self.tello_address)
+        self.sock.send(cmd)
         if wait > 0: # i tilfelle vi ønsker delay
             time.sleep(wait)
 
