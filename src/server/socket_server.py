@@ -1,85 +1,109 @@
 from queue import Queue
 from socket import socket, AF_INET, SOCK_DGRAM
-from threading import Thread, Event
+from threading import Event
+
+from listen_thread import listen_thread
 
 import time
 
 BUFFER_SIZE = 2048
 
+# porter hvor data kommer inn
+TEXT_PORT = 9000 
+IMAGE_PORT = 11111
+
+TEXT_SEND_PORT = 8889
+
 class server:
     """
-    o
+    Socket server used for two-way communication.
 
-    Creates a UDP connection between a pc and a Tello drone.
+    Creates a UDP connection between a pc and a Tello drone. Opening two different listen threads for both image
+    and text communication.
     """
 
-    def __init__(self, pipe:Queue, local_address:tuple[str, int], listen_address:tuple[str, int]=None):
-        """
-        Server
-        - 
+    def __init__(self, local_address:tuple[str, int], target_address:str, max_queue_size=10):
+        """creates a socket server to recieve and send data
+        
+        required:
+        - local address : the address to host the different listening threads on.
+        - target address : The addres where data will be sent to.
+
+        optional:
+        - max queue size : The maximum size for both the text and image queue
         """
         self.local_address = local_address
-        self.listen_address = listen_address
+        self.target_address = target_address
 
-        self.pipe = pipe
+        self.text_pipe = Queue(max_queue_size)
+        self.image_pipe = Queue(max_queue_size)
 
-        self.socket = socket(AF_INET, SOCK_DGRAM)
-
-        self.socket.bind(local_address)
+        self.send_socket = socket(AF_INET, SOCK_DGRAM)
 
         self.kill_thread = Event()
-        self.listen_thread = None
+        self.text_thread = None
+        self.image_thread = None
 
-    def listen(self):
-        if not self.listen_address:
-            print("listen address not defined.")
-            return
-        
-        def wrap():
-            self.socket.settimeout(0.5)
+    def listen_text(self):
+        """
+        Opens the text socket and starts listening.
+        """
+        # put the recieved data into a pipe
+        handle_data = lambda data : self.text_pipe.put(data.decode(encoding="utf-8")) 
 
-            while not self.kill_thread.is_set():
-                try:
-                    data, address = self.socket.recvfrom(BUFFER_SIZE)
+        self.text_thread = listen_thread(self.local_address[0], TEXT_PORT, self.kill_thread, target=handle_data, id=0)
+        self.text_thread.start()
 
-                    self.pipe.put(data.decode(encoding="utf-8")) # put the recieved data into a pipe
-                except TimeoutError:
-                    continue
+    def listen_image(self):
+        """
+        Opens the image socket and starts listening.
+        """
+        handle_data = lambda data : self.image_pipe.put(data) 
 
-        self.listen_thread = Thread(target=wrap)
-        self.listen_thread.start()
+        self.image_thread = listen_thread(self.local_address[0], IMAGE_PORT, self.kill_thread, target=handle_data, id=1)
+        self.image_thread.start()
 
     def send(self, msg):
-        self.socket.sendto(msg.encode(encoding="utf-8"), self.listen_address)
+        """
+        Sends a msg to the target address.
+        """
+        self.send_socket.sendto(msg.encode(encoding="utf-8"), (self.target_address, TEXT_PORT))
 
-    def get_next(self):
-        return None if self.pipe.empty() else self.pipe.get()
+    def get_text(self):
+        return None if self.text_pipe.empty() else self.text_pipe.get()
+    
+    def get_image(self):
+        return None if self.image_pipe.empty() else self.image_pipe.get()
     
     def stop(self):
         print("Stopping socket server...")
         self.kill_thread.set()
 
-        if (self.listen_thread.is_alive()):
-            print("Waiting for thread...")
-            self.listen_thread.join()
+        if (self.text_thread):
+            self.text_thread.stop()
 
-        self.socket.close()
+        if (self.image_thread):
+            self.image_thread.stop()
+
+        self.send_socket.close()
 
         print("Successfully stopped socket server.")
 
-
 if __name__ == "__main__":
-    pipe = Queue(10)
+    test = server(("127.0.0.1", 8000), "127.0.0.1")
 
-    test = server(pipe, ("127.0.0.1", 8000), ("127.0.0.1", 8000))
-
-    test.listen()
+    test.listen_text()
 
     test.send("oogabooga")
     test.send("oogabooga")
     test.send("oogabooga")
     test.send("oogabooga")
 
-    print(test.get_next())
+    time.sleep(2)
+
+    print(test.get_text())
+    print(test.get_text())
+    print(test.get_text())
+    print(test.get_text())
 
     test.stop()
