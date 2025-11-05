@@ -5,6 +5,21 @@ BUFFER_SIZE = 2048
 
 class listen_thread:
     def __init__(self, address:str, port:int, event_signal:Event, timeout=0.5, target=None, id=0):
+        """
+        listen thread
+
+        required:
+        - address: The IP-address to listen to
+        - port: The port for listening
+        - event_signal: Signal to terminate the thread
+
+        optional:
+        - timeout: seconds before the socket times out
+        - target: target function
+            - required:
+                - unproccessed data
+        - id: id of the, only used for print statements
+        """
         self.socket = socket(AF_INET, SOCK_DGRAM)
         self.socket.bind((address, port))
 
@@ -21,8 +36,6 @@ class listen_thread:
     def start(self):
         """
         Starts the thread with the function set to target.
-
-        The function recieves undecoded data from socket.recvfrom.
         """
         if not self.target:
             print(f"There are no target function defined for thread {self.id}.")
