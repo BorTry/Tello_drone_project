@@ -7,11 +7,13 @@ class event_listener:
         Basic event listener.
 
         required:
-        - event_name : name of the event.
-        - event_code : code for the event.
+        - event_name : Name of the event.
+        - event_code : Code for the event. A pygame event.
     
         optional:
-        - check_func: function which describes if the listener should trigger
+        - check_func: Function which describes if the listener should trigger
+            - required:
+                - component: Every component that can trigger on the event
         """
         self.name = event_name
         self.type = event_code
