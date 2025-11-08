@@ -63,7 +63,7 @@ RIGHT = button(
     text="Right"
 )
 
-buttons_b = BUTTON_Y_OFFSET + TITLE_Y + 200  
+buttons_b = BUTTON_Y_OFFSET + TITLE_Y + 200  #definerer at display-verdiene skal nederst på siden (relativt til knappene) 
 center_x = (main_screen.size[0] // 2) - (TITLE_WIDTH // 2)
 start_y = buttons_b + 50
 ROW_HEIGHT = 60   
@@ -75,6 +75,17 @@ battery_val = "No value"  # drone.battery_check()
 time_val    = "No value"  # drone.time_check()
 
 #wifi_val    = "No value"  # drone.wifi_check()
+
+FACE_BUTTON_W, FACE_BUTTON_H = 260, 60
+FACE_TRACK = button(
+    ((main_screen.size[0] // 2) - (FACE_BUTTON_W // 2),  
+     start_y - (FACE_BUTTON_H + 5)),                   
+    (FACE_BUTTON_W, FACE_BUTTON_H),
+    lambda x: print("Face tracking on"),
+    color=(0, 200, 255),
+    text="Face Tracking"
+)
+
 
 SPEED   = textfield((center_x, start_y + ROW_HEIGHT * 0), (TITLE_WIDTH, 75), f"SPEED: {speed_val}", color=(255, 255, 255))
 BATTERY = textfield((center_x, start_y + ROW_HEIGHT * 1), (TITLE_WIDTH, 75), f"BATTERY: {battery_val}", color=(255, 255, 255))
@@ -88,6 +99,8 @@ main_screen.add_component(UP)
 main_screen.add_component(DOWN)
 main_screen.add_component(LEFT)
 main_screen.add_component(RIGHT)
+
+main_screen.add_component(FACE_TRACK)
 
 main_screen.add_component(SPEED)
 main_screen.add_component(BATTERY)
