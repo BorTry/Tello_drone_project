@@ -4,6 +4,7 @@ A way to visualize the data collected from the logger class
 
 1. A function to visualize a single data point from a csv file
 2. A function to visualize multiple (two, hopefully more) data points against eachother
+3. Make sure the function can either use a sub section or all the data
 
 ###############      Logger      ###############
 
