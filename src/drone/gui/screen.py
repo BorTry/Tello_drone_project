@@ -30,10 +30,19 @@ class screen:
         self.screen.fill(BGC)
         pass
 
-    def run(self):
+    def run(self, run_func=None):
+        """
+        runs the screen
+
+        optional:
+        - run_func: a function that is ran every frame
+        """
         while True:
             if (self.handle_events()): break
             self.comp_handler.run(self.screen)
+
+            if run_func:
+                run_func()
 
             for event in p.event.get():
                     if event.type == p.QUIT:

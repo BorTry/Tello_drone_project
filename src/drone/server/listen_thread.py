@@ -18,7 +18,7 @@ class listen_thread:
         - target: target function
             - required:
                 - unproccessed data
-        - id: id of the, only used for print statements
+        - id: id of the thread, only used for print statements
         """
         self.socket = socket(AF_INET, SOCK_DGRAM)
         self.socket.bind((address, port))

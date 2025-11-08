@@ -4,8 +4,6 @@ from drone.gui.components.text_field import textfield
 from drone.gui.listeners import on_click
 from drone.drone_movement.drone_read import drone_data
 
-import pygame as p
-
 main_screen = screen(1000, 562, (on_click, ), BGC=(25, 25, 25))
 
 TITLE_WIDTH = 400
@@ -68,13 +66,9 @@ center_x = (main_screen.size[0] // 2) - (TITLE_WIDTH // 2)
 start_y = buttons_b + 50
 ROW_HEIGHT = 60   
 
-#drone = drone_data(sock, tello_address) #test
-
 speed_val   = "No value"  # drone.speed_check() # må bruke disse
 battery_val = "No value"  # drone.battery_check()
 time_val    = "No value"  # drone.time_check()
-
-#wifi_val    = "No value"  # drone.wifi_check()
 
 FACE_BUTTON_W, FACE_BUTTON_H = 260, 60
 FACE_TRACK = button(
@@ -86,11 +80,9 @@ FACE_TRACK = button(
     text="Face Tracking"
 )
 
-
 SPEED   = textfield((center_x, start_y + ROW_HEIGHT * 0), (TITLE_WIDTH, 75), f"SPEED: {speed_val}", color=(255, 255, 255))
 BATTERY = textfield((center_x, start_y + ROW_HEIGHT * 1), (TITLE_WIDTH, 75), f"BATTERY: {battery_val}", color=(255, 255, 255))
 TIME    = textfield((center_x, start_y + ROW_HEIGHT * 2), (TITLE_WIDTH, 75), f"TIME: {time_val}", color=(255, 255, 255))
-#WIFI    = textfield((center_x, start_y + ROW_HEIGHT * 3), (TITLE_WIDTH, 75), f"WIFI: {wifi_val}", color=(255, 255, 255)) # usikker på om denne er nødvendig
 
 main_screen.add_component(TITLE)
 main_screen.add_component(TAKE_OFF)
@@ -105,6 +97,6 @@ main_screen.add_component(FACE_TRACK)
 main_screen.add_component(SPEED)
 main_screen.add_component(BATTERY)
 main_screen.add_component(TIME)
-#main_screen.add_component(WIFI)
+
 
 main_screen.run()

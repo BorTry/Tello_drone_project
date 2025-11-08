@@ -3,11 +3,12 @@ from socket import socket, AF_INET, SOCK_DGRAM
 from threading import Event
 
 from listen_thread import listen_thread
+from time import sleep
 
 BUFFER_SIZE = 2048
 
 # porter hvor data kommer inn
-TEXT_PORT = 9000 
+TEXT_PORT = 8890
 IMAGE_PORT = 11111
 
 TEXT_SEND_PORT = 8889
@@ -20,7 +21,7 @@ class server:
     and text communication.
     """
 
-    def __init__(self, local_address:tuple[str, int], target_address:str, max_queue_size=10):
+    def __init__(self, local_address:str, target_address:str, max_queue_size=10):
         """creates a socket server to recieve and send data
         
         required:
@@ -74,12 +75,19 @@ class server:
         """
         Sends a msg to the target address.
         """
+
         self.send_socket.sendto(msg.encode(encoding="utf-8"), (self.target_address, TEXT_PORT))
 
     def get_text(self):
+        """
+        Returns the next text message in the queue
+        """
         return None if self.text_pipe.empty() else self.text_pipe.get()
     
     def get_image(self):
+        """
+        Returns the next image data in the queue
+        """
         return None if self.image_pipe.empty() else self.image_pipe.get()
     
     def stop(self):
