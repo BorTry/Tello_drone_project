@@ -4,8 +4,6 @@ from threading import Event
 
 from listen_thread import listen_thread
 
-import time
-
 BUFFER_SIZE = 2048
 
 # porter hvor data kommer inn
@@ -26,11 +24,11 @@ class server:
         """creates a socket server to recieve and send data
         
         required:
-        - local address : the address to host the different listening threads on.
-        - target address : The addres where data will be sent to.
+        - local address: the address to host the different listening threads on.
+        - target address: The address where data will be sent to.
 
         optional:
-        - max queue size : The maximum size for both the text and image queue
+        - max queue size: The maximum size for both the text and image queue
         """
         self.local_address = local_address
         self.target_address = target_address
@@ -44,6 +42,13 @@ class server:
         self.text_thread = None
         self.image_thread = None
 
+    def listen(self):
+        """
+        Opens all sockets and starts listening.
+        """
+        self.listen_text()
+        self.listen_image()
+
     def listen_text(self):
         """
         Opens the text socket and starts listening.
@@ -51,7 +56,7 @@ class server:
         # put the recieved data into a pipe
         handle_data = lambda data : self.text_pipe.put(data.decode(encoding="utf-8")) 
 
-        self.text_thread = listen_thread(self.local_address[0], TEXT_PORT, self.kill_thread, target=handle_data, id=0)
+        self.text_thread = listen_thread(self.local_address, TEXT_PORT, self.kill_thread, target=handle_data, id=0)
         self.text_thread.start()
 
     def listen_image(self):
@@ -60,8 +65,10 @@ class server:
         """
         handle_data = lambda data : self.image_pipe.put(data) 
 
-        self.image_thread = listen_thread(self.local_address[0], IMAGE_PORT, self.kill_thread, target=handle_data, id=1)
+        self.image_thread = listen_thread(self.local_address, IMAGE_PORT, self.kill_thread, target=handle_data, id=1)
         self.image_thread.start()
+
+        self.send("streamon")
 
     def send(self, msg):
         """
@@ -88,22 +95,3 @@ class server:
         self.send_socket.close()
 
         print("Successfully stopped socket server.")
-
-if __name__ == "__main__":
-    test = server(("127.0.0.1", 8000), "127.0.0.1")
-
-    test.listen_text()
-
-    test.send("oogabooga")
-    test.send("oogabooga")
-    test.send("oogabooga")
-    test.send("oogabooga")
-
-    time.sleep(2)
-
-    print(test.get_text())
-    print(test.get_text())
-    print(test.get_text())
-    print(test.get_text())
-
-    test.stop()
