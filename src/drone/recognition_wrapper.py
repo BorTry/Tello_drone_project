@@ -74,7 +74,7 @@ class recognition_wrapper:
         
         cv2.imshow(self.name, frame)
 
-    def get_dominante_object(objects):
+    def get_dominant_object(objects):
         """
         Returns the dominante object in a list of detection objects
         """
