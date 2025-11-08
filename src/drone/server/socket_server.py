@@ -8,19 +8,10 @@ from time import sleep
 BUFFER_SIZE = 2048
 
 # porter hvor data kommer inn
-TEXT_PORT = 9000 
+TEXT_PORT = 8890
 IMAGE_PORT = 11111
 
 TEXT_SEND_PORT = 8889
-
-COMMAND_TO_DATA = {
-    "speed?" : ["speed"],
-    "battery?" : ["battery"],
-    "time?" : ["time"],
-    "height?" : ["height"],
-    "attitude?" : ["pitch", "yaw", "roll"],
-    "acceleration?" : ["x", "y", "z"],
-}
 
 class server:
     """
@@ -112,18 +103,3 @@ class server:
         self.send_socket.close()
 
         print("Successfully stopped socket server.")
-
-if __name__ == "__main__":
-    test = server("0.0.0.0", "0.0.0.0")
-
-    test.listen_text()
-
-    test.send("height?")
-    test.send("attitude?")
-    test.send("time?")
-
-    print(test.get_text())
-    print(test.get_text())
-    print(test.get_text())
-
-    test.stop()

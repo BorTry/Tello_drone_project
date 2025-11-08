@@ -57,7 +57,7 @@ class logger:
         appends a string into a txt file
         """
 
-        formatted_path = f"{self.path}/logs/{self.formatted_date}.csv"
+        formatted_path = f"{self.path}/logs/{self.formatted_date}.txt"
 
         if not os.path.exists(formatted_path):
             open(formatted_path, "x").close()
