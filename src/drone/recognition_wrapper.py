@@ -74,6 +74,25 @@ class recognition_wrapper:
         
         cv2.imshow(self.name, frame)
 
+    def get_dominante_object(objects):
+        """
+        Returns the dominante object in a list of detection objects
+        """
+        if (len(objects) == 0):
+            return None
+        
+        largest_index = 0
+        mw, mh = largest_index[2], largest_index[3] # max width and height 
+
+        for index in range(len(objects)):
+            x, y, w, h = objects[index]
+
+            if w * h > mw * mh:
+                largest_index = index
+                mw, mh = w, h
+
+        return objects[largest_index]
+
 if __name__ == "__main__":
     def main():
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
