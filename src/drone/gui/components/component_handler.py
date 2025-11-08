@@ -1,4 +1,4 @@
-from gui.components import component
+from drone.gui.components import component
 from pygame import draw, display as di, font as f
 
 f.init()
@@ -6,6 +6,11 @@ FONT_SIZE = 28
 FONT = f.SysFont("arial", FONT_SIZE)
 
 class component_handler:
+    """
+    Component handler
+
+    handles all draw calls for the components given to it
+    """
     def __init__(self):
         self.components = []
 

@@ -1,19 +1,19 @@
 class event_listener:
     """
-    Basic event listener
+    Basic event listener for pygame events
     """
     def __init__(self, event_name:str, event_code:int, check_func=None):
         """
-        Basic event listener.
-        -
+        Basic event listener for pygame events.
+
         required:
-        -
-        event_name : name of the event.
-        event_code : code for the event.
+        - event_name : Name of the event.
+        - event_code : Code for the event. A pygame event.
     
-        optional
-        -
-        check_func: function which describes if the listener should trigger
+        optional:
+        - check_func: Function which describes if the listener should trigger
+            - required:
+                - component: Every component that can trigger on the event
         """
         self.name = event_name
         self.type = event_code
