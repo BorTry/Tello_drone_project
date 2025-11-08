@@ -1,9 +1,13 @@
 ############### Data Visualizer ###############
 
-1. 
-2. 
+A way to visualize the data collected from the logger class
+
+1. A function to visualize a single data point from a csv file
+2. A function to visualize multiple (two, hopefully more) data points against eachother
 
 ###############      Logger      ###############
 
-1.
-2.
+A class capable of creating eiter a txt or csv file meant for logging
+
+1. Function that takes in a string and appends it to a file
+2. 
