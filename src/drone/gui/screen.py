@@ -30,7 +30,7 @@ class screen:
         self.screen.fill(BGC)
         pass
 
-    def run(self, run_func:function=None):
+    def run(self, run_func=None):
         """
         runs the screen
 
