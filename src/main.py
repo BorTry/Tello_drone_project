@@ -1,7 +1,7 @@
-from gui.screen import screen
-from gui.components.button import button
-from gui.components.text_field import textfield
-from gui.listeners import on_click
+from drone.gui.screen import screen
+from drone.gui.components.button import button
+from drone.gui.components.text_field import textfield
+from drone.gui.listeners import on_click
 
 import pygame as p
 

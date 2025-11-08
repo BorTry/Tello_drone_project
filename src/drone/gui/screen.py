@@ -1,6 +1,6 @@
 import pygame as p
-from gui.components.component_handler import component_handler as ch
-from gui.components.component import component
+from drone.gui.components.component_handler import component_handler as ch
+from drone.gui.components.component import component
 
 p.init()
 

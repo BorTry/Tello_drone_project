@@ -1,4 +1,4 @@
-from gui.components import component
+from drone.gui.components import component
 from pygame import draw, display as di, font as f
 
 f.init()

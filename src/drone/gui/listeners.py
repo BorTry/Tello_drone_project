@@ -1,5 +1,5 @@
 from pygame import mouse, MOUSEBUTTONDOWN
-from gui.event_listener import event_listener
+from drone.gui.event_listener import event_listener
 
 # A list of pre-defined listeners
 

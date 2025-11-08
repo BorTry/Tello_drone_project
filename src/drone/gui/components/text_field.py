@@ -1,4 +1,4 @@
-from gui.components.component import component
+from drone.gui.components.component import component
 
 class textfield(component):
     def __init__(self, pos, size, text, listener=None, efunction=None, color=tuple[int, int, int]):
