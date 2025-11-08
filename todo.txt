@@ -1,4 +1,4 @@
-############### Data Visualizer ###############
+############### Data Visualizers ###############
 
 A way to visualize the data collected from the logger class
 
@@ -7,7 +7,17 @@ A way to visualize the data collected from the logger class
 
 ###############      Logger      ###############
 
-A class capable of creating eiter a txt or csv file meant for logging
+A class capable of creating eiter a txt or csv file meant for logging.
+Has to check if there is a "data" and "logs" folder before doing anything
 
-1. Function that takes in a string and appends it to a file
-2. 
+1. Function that takes in a string and appends it to a file under the "logs" folder
+2. Function that takes in a string and appends it to a file under the "data" folder
+
+###############      Tracker      ###############
+
+A function or class to ensure the drone is always following the dominate face
+in any given image
+
+############### Finish everything ###############
+
+Tie all the functions and classes together...
