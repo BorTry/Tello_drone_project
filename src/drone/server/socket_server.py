@@ -3,6 +3,7 @@ from socket import socket, AF_INET, SOCK_DGRAM
 from threading import Event
 
 from listen_thread import listen_thread
+from time import sleep
 
 BUFFER_SIZE = 2048
 
@@ -29,7 +30,7 @@ class server:
     and text communication.
     """
 
-    def __init__(self, local_address:tuple[str, int], target_address:str, max_queue_size=10):
+    def __init__(self, local_address:str, target_address:str, max_queue_size=10):
         """creates a socket server to recieve and send data
         
         required:
@@ -104,10 +105,10 @@ class server:
 
         ret_obj = {}
 
-        for index in range(len(data_list)):
-            ret_obj[labels[index]] = data_list[index]
+        for index in range(len(labels)):
+            ret_obj[labels[index]] = data_list[index] if (len(data_list) - 1) >= index else None
         
-        return data_list
+        return ret_obj
     
     def get_image(self):
         """
@@ -128,3 +129,18 @@ class server:
         self.send_socket.close()
 
         print("Successfully stopped socket server.")
+
+if __name__ == "__main__":
+    test = server("0.0.0.0", "0.0.0.0")
+
+    test.listen_text()
+
+    test.send("height?")
+    test.send("attitude?")
+    test.send("time?")
+
+    print(test.get_text())
+    print(test.get_text())
+    print(test.get_text())
+
+    test.stop()
