@@ -10,7 +10,16 @@ BUFFER_SIZE = 2048
 TEXT_PORT = 9000 
 IMAGE_PORT = 11111
 
-TEXT_SEND_PORT = 8889
+TEXT_SEND_PORT = 8890
+
+COMMAND_TO_DATA = {
+    "speed?" : ["speed"],
+    "battery?" : ["battery"],
+    "time?" : ["time"],
+    "height?" : ["height"],
+    "attitude?" : ["pitch", "yaw", "roll"],
+    "acceleration?" : ["x", "y", "z"],
+}
 
 class server:
     """
@@ -41,6 +50,8 @@ class server:
         self.kill_thread = Event()
         self.text_thread = None
         self.image_thread = None
+
+        self.text_queue = [] # holds all sent messages
 
     def listen(self):
         """
@@ -74,12 +85,34 @@ class server:
         """
         Sends a msg to the target address.
         """
+        if not (msg in COMMAND_TO_DATA):
+            print(f"{msg} not a command.")
+            return
+
+        self.text_queue.append(COMMAND_TO_DATA[msg])
         self.send_socket.sendto(msg.encode(encoding="utf-8"), (self.target_address, TEXT_PORT))
 
     def get_text(self):
-        return None if self.text_pipe.empty() else self.text_pipe.get()
+        """
+        Returns the next text message in the queue
+        """
+        if self.text_pipe.empty():
+            return None
+        
+        data_list = self.text_pipe.get().split(" ")
+        labels = self.text_queue.pop(0)
+
+        ret_obj = {}
+
+        for index in range(len(data_list)):
+            ret_obj[labels[index]] = data_list[index]
+        
+        return data_list
     
     def get_image(self):
+        """
+        Returns the next image data in the queue
+        """
         return None if self.image_pipe.empty() else self.image_pipe.get()
     
     def stop(self):
