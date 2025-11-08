@@ -2,6 +2,7 @@ from drone.gui.screen import screen
 from drone.gui.components.button import button
 from drone.gui.components.text_field import textfield
 from drone.gui.listeners import on_click
+from drone.drone_movement.drone_read import drone_data
 
 import pygame as p
 
@@ -21,6 +22,8 @@ BUTTON_COLOR = (255, 255, 0)
 BUTTON_Y_OFFSET = 100
 
 BUTTON_START_X = 200
+
+
 
 TAKE_OFF = button(
     (BUTTON_START_X, TITLE_Y + BUTTON_Y_OFFSET), (175, 75), 
@@ -60,6 +63,35 @@ RIGHT = button(
     text="Right"
 )
 
+buttons_b = BUTTON_Y_OFFSET + TITLE_Y + 200  #definerer at display-verdiene skal nederst på siden (relativt til knappene) 
+center_x = (main_screen.size[0] // 2) - (TITLE_WIDTH // 2)
+start_y = buttons_b + 50
+ROW_HEIGHT = 60   
+
+#drone = drone_data(sock, tello_address) #test
+
+speed_val   = "No value"  # drone.speed_check() # må bruke disse
+battery_val = "No value"  # drone.battery_check()
+time_val    = "No value"  # drone.time_check()
+
+#wifi_val    = "No value"  # drone.wifi_check()
+
+FACE_BUTTON_W, FACE_BUTTON_H = 260, 60
+FACE_TRACK = button(
+    ((main_screen.size[0] // 2) - (FACE_BUTTON_W // 2),  
+     start_y - (FACE_BUTTON_H + 5)),                   
+    (FACE_BUTTON_W, FACE_BUTTON_H),
+    lambda x: print("Face tracking on"),
+    color=(0, 200, 255),
+    text="Face Tracking"
+)
+
+
+SPEED   = textfield((center_x, start_y + ROW_HEIGHT * 0), (TITLE_WIDTH, 75), f"SPEED: {speed_val}", color=(255, 255, 255))
+BATTERY = textfield((center_x, start_y + ROW_HEIGHT * 1), (TITLE_WIDTH, 75), f"BATTERY: {battery_val}", color=(255, 255, 255))
+TIME    = textfield((center_x, start_y + ROW_HEIGHT * 2), (TITLE_WIDTH, 75), f"TIME: {time_val}", color=(255, 255, 255))
+#WIFI    = textfield((center_x, start_y + ROW_HEIGHT * 3), (TITLE_WIDTH, 75), f"WIFI: {wifi_val}", color=(255, 255, 255)) # usikker på om denne er nødvendig
+
 main_screen.add_component(TITLE)
 main_screen.add_component(TAKE_OFF)
 main_screen.add_component(LAND)
@@ -67,5 +99,12 @@ main_screen.add_component(UP)
 main_screen.add_component(DOWN)
 main_screen.add_component(LEFT)
 main_screen.add_component(RIGHT)
+
+main_screen.add_component(FACE_TRACK)
+
+main_screen.add_component(SPEED)
+main_screen.add_component(BATTERY)
+main_screen.add_component(TIME)
+#main_screen.add_component(WIFI)
 
 main_screen.run()
