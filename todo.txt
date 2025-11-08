@@ -22,3 +22,4 @@ in any given image
 ############### Finish everything ###############
 
 Tie all the functions and classes together...
+Write a README file that describe a little bit about the project, and the core functionality
