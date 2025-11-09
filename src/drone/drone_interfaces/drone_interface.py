@@ -1,5 +1,3 @@
-import time
-
 class drone:
     """
     Interface for the Tello drone
