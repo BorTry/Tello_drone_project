@@ -2,7 +2,24 @@ from drone.gui.screen import screen
 from drone.gui.components.button import button
 from drone.gui.components.text_field import textfield
 from drone.gui.listeners import on_click
-from drone.drone_movement.drone_read import drone_data
+
+from drone.server.socket_server import server
+from Tello_drone_project.src.drone.drone_interface import drone as dr
+
+
+# ======================= Socket Server =======================
+
+Socket_server = server("0.0.0.0", "0.0.0.0")
+Socket_server.listen_text()
+
+# =========================== Drone ===========================
+
+drone = dr(Socket_server)
+
+drone.up(20)
+drone.forward(20)
+
+# ============================ GUI ============================
 
 main_screen = screen(1000, 562, (on_click, ), BGC=(25, 25, 25))
 
@@ -20,8 +37,6 @@ BUTTON_COLOR = (255, 255, 0)
 BUTTON_Y_OFFSET = 100
 
 BUTTON_START_X = 200
-
-
 
 TAKE_OFF = button(
     (BUTTON_START_X, TITLE_Y + BUTTON_Y_OFFSET), (175, 75), 
@@ -61,7 +76,9 @@ RIGHT = button(
     text="Right"
 )
 
-buttons_b = BUTTON_Y_OFFSET + TITLE_Y + 200  #definerer at display-verdiene skal nederst på siden (relativt til knappene) 
+# ======================= State Display =======================
+
+buttons_b = BUTTON_Y_OFFSET + TITLE_Y + 200  # definerer at display-verdiene skal nederst på siden (relativt til knappene) 
 center_x = (main_screen.size[0] // 2) - (TITLE_WIDTH // 2)
 start_y = buttons_b + 50
 ROW_HEIGHT = 60   
@@ -97,6 +114,5 @@ main_screen.add_component(FACE_TRACK)
 main_screen.add_component(SPEED)
 main_screen.add_component(BATTERY)
 main_screen.add_component(TIME)
-
 
 main_screen.run()
