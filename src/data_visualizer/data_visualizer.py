@@ -21,6 +21,5 @@ class vizualizer:
         #return self.clean_text
 
 testing = vizualizer()
-#vizualizer()
 
 testing.clean_text()
