@@ -6,3 +6,9 @@ class textfield(component):
             super().__init__(pos, size, {"text": text, "event": listener, "efunc": efunction}, color)
         else:
             super().__init__(pos, size, {"text": text}, color)
+
+    def change_text(self, txt):
+        """
+        Change the text in a textfield
+        """
+        self.text = txt
