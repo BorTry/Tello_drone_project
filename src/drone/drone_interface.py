@@ -4,23 +4,21 @@ class drone:
     """
     Interface for the Tello drone
     """
-    def __init__(self, sock, tello_address):
+    def __init__(self, sock):
         """
         Tello drone
 
         required:
         - sock: A socket connection to send the data to the drone
-        - tello_address: The drone address (IP, PORT)
         """
         self.sock = sock
-        self.tello_address = tello_address
 
-        sock.send(b"command") # gå i SDK modus for pre-programerte bevegelser i python
+        self.send("command") # gå i SDK modus for pre-programerte bevegelser i python
 
-    def send(self, cmd, wait = 0):
+    def send(self, cmd):
         self.sock.send(cmd)
-        if wait > 0: # i tilfelle vi ønsker delay
-            time.sleep(wait)
+
+        print(f"Sending command '{cmd}'")
 
     def takeoff(self):
         self.send("takeoff")
