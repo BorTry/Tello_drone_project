@@ -1,5 +1,4 @@
 from socket import socket, AF_INET, SOCK_DGRAM
-from time import sleep
 
 from threading import Thread
 
@@ -27,6 +26,8 @@ REVERSE_FUNCTIONS = {
     "ccw"
 }
 
+ADDRESS = "0.0.0.0"
+
 class mock_drone:
     """
     simulates the recieving and sending of data for the Tello drone.
@@ -40,34 +41,57 @@ class mock_drone:
             "yaw":0,
             "pitch":0,
             "height":0,
+            "battery":100
         }
 
         self.socket = socket(AF_INET, SOCK_DGRAM)
-        self.socket.bind(("192.168.10.1", 8889)) # Tello IP address
+        self.socket.bind((ADDRESS, 8889)) # Tello IP address
+        self.socket.settimeout(0.01)
 
         self.shut_event = shut_event
         self.thread = None
 
     def send_data(self):
+        stat_string = "agx:%d;agy:%d;agz:%d;roll:%d;yaw:%d;pitch:%d;height:%d;battery:%d" % (
+            self.stats["x_acc"], self.stats["y_acc"], self.stats["z_acc"], 
+            self.stats["roll"], self.stats["yaw"], self.stats["pitch"], 
+            self.stats["height"], self.stats["battery"]
+        )
+
         self.socket.sendto(
-            "agx:%2d;agy:%2d;agz%2d;roll:%2d;yaw:%2d;pitch:%2d;height:%2d" % (
-                self.x_acc, self.y_acc, self.z_acc, self.roll, self.yaw, self.pitch, self.height
-            ),
+            stat_string.encode(encoding="utf-8"),
             ("0.0.0.0", 8890)
         )
 
+    def stop(self):
+        print("Stopping mock drone...")
+        self.shut_event.set()
+
+        if self.thread.is_alive():
+            print("Waiting for drone thread")
+            self.thread.join()
+        self.socket.close()
+        print("Successfully stopped mock drone")
+
     def run(self):
         def wrap():
-            self.socket.settimeout(0.1)
+            from time import sleep
 
             while (not self.shut_event.is_set()):
                 try:
                     data, a = self.socket.recvfrom(BUFFER_SIZE)
 
-                    if not data:
+                    if not data or data == "command" or data == "streamon":
                         continue
 
                     data = data.decode(encoding="utf-8").split(" ")
+
+                    
+                    if (data[0] == "takeoff" or data[0] == "land"):
+                        data.append(20)
+
+                    data[1] = float(data[1])
+                    print(f"Drone recieved {data[0]} {data[1]}")
 
                     if (data[0] in REVERSE_FUNCTIONS):
                         data[1] *= -1
@@ -75,10 +99,10 @@ class mock_drone:
                     self.stats[COMMAND_TO_FUNC[data[0]]] += data[1]
 
                 except TimeoutError:
-                    continue
+                    pass
 
                 self.send_data()
-
-                sleep(60 / IPS)
+                sleep(1 / IPS)
         
         self.thread = Thread(target=wrap)
+        self.thread.start()
