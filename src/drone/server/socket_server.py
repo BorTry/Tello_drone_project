@@ -14,7 +14,7 @@ TEXT_PORT = 8890
 IMAGE_PORT = 11111
 
 # ports where data will be sent to
-TEXT_SEND_PORT = 8890
+TEXT_SEND_PORT = 8889
 
 class server:
     """
@@ -39,6 +39,7 @@ class server:
 
         self.text_pipe = Queue(max_queue_size)
         self.image_pipe = Queue(max_queue_size)
+        self.max_queue_size = max_queue_size
 
         self.send_socket = socket(AF_INET, SOCK_DGRAM)
 
@@ -69,7 +70,9 @@ class server:
 
                 data_list[pair[0]] = [pair[1]]
 
-            self.text_pipe.put(data_list)
+            if self.text_pipe.qsize() < self.max_queue_size:
+                self.text_pipe.put(data_list)
+
             server_logger.log_csv(data_list)
 
         self.text_thread = listen_thread(self.local_address, TEXT_PORT, self.kill_thread, target=handle_data, id=0)
@@ -91,7 +94,7 @@ class server:
         Sends a msg to the target address.
         """
 
-        self.send_socket.sendto(msg.encode(encoding="utf-8"), (self.target_address, TEXT_PORT))
+        self.send_socket.sendto(msg.encode(encoding="utf-8"), (self.target_address, TEXT_SEND_PORT))
 
     def get_text(self):
         """
