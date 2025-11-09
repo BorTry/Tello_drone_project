@@ -1,5 +1,9 @@
 from drone.server.socket_server import server
-from drone.drone_interface import drone as dr
+
+from drone.drone_interfaces.drone_interface import drone as dr
+from drone.drone_interfaces.mock_drone import mock_drone as mdr
+
+from threading import Event
 
 from drone.gui.screen import screen
 from drone.gui.components.button import button
@@ -9,13 +13,25 @@ from drone.gui.listeners import on_click
 # ======================= Socket Server =======================
 
 Socket_server = server("0.0.0.0", "0.0.0.0")
-# Socket_server.listen_text()
+Socket_server.listen_text()
 
 # =========================== Drone ===========================
 
 drone = dr(Socket_server)
 
+# ======================== Mock Drone =========================
+
+quit_event = Event()
+
+mock_drone = mdr(quit_event)
+mock_drone.run()
+
 # ============================ GUI ============================
+
+def on_quit():
+    Socket_server.stop()
+
+    mock_drone.stop()
 
 main_screen = screen(1000, 562, (on_click, ), BGC=(25, 25, 25))
 
@@ -51,25 +67,25 @@ LAND = button(
 
 UP = button(
     (BUTTON_START_X + 200, TITLE_Y + BUTTON_Y_OFFSET), BUTTON_SIZE, 
-    lambda x: drone.up(), 
+    lambda x: drone.up(20), 
     color=BUTTON_COLOR,
     text="Up"
 )
 DOWN = button(
     (BUTTON_START_X + 200, TITLE_Y + BUTTON_Y_OFFSET + 100), BUTTON_SIZE, 
-    lambda x: drone.down(), 
+    lambda x: drone.down(20), 
     color=BUTTON_COLOR,
     text="Down"
 )
 LEFT = button(
     (BUTTON_START_X + 400, TITLE_Y + BUTTON_Y_OFFSET), BUTTON_SIZE, 
-    lambda x: drone.left(), 
+    lambda x: drone.left(20), 
     color=BUTTON_COLOR,
     text="Left"
 )
 RIGHT = button(
     (BUTTON_START_X + 400, TITLE_Y + BUTTON_Y_OFFSET + 100), BUTTON_SIZE, 
-    lambda x: drone.right(), 
+    lambda x: drone.right(20), 
     color=BUTTON_COLOR,
     text="Right"
 )
@@ -123,4 +139,21 @@ main_screen.add_component(ACC_X)
 main_screen.add_component(ACC_Y)
 main_screen.add_component(ACC_Z)
 
-main_screen.run()
+STAT_TO_FIELD = {
+    "battery": BATTERY,
+    "time": TIME,
+    "agx":ACC_X,
+    "agy":ACC_Y,
+    "agz":ACC_Z,
+}
+
+def run_function():
+    stats = Socket_server.get_text()
+    if stats == None:
+        return
+    
+    for stat in stats.keys():
+        if stat in STAT_TO_FIELD:
+            STAT_TO_FIELD[stat].change_text(f"{stat} {stats[stat][0]}")
+
+main_screen.run(run_func=run_function, quit_func=on_quit)
