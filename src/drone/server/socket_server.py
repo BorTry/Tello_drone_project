@@ -2,16 +2,19 @@ from queue import Queue
 from socket import socket, AF_INET, SOCK_DGRAM
 from threading import Event
 
-from listen_thread import listen_thread
-from time import sleep
+from drone.server.listen_thread import listen_thread
+from drone.logger import LOGGER
+
+server_logger = LOGGER.get_logger("Socket server")
 
 BUFFER_SIZE = 2048
 
-# porter hvor data kommer inn
+# ports where data will be recieved
 TEXT_PORT = 8890
 IMAGE_PORT = 11111
 
-TEXT_SEND_PORT = 8889
+# ports where data will be sent to
+TEXT_SEND_PORT = 8890
 
 class server:
     """
@@ -54,8 +57,20 @@ class server:
         """
         Opens the text socket and starts listening.
         """
-        # put the recieved data into a pipe
-        handle_data = lambda data : self.text_pipe.put(data.decode(encoding="utf-8")) 
+        def handle_data(data):
+            # put the recieved data into a pipe
+            decoded_data = data.decode(encoding="utf-8").split(";")
+
+            # format data
+            data_list = {}
+
+            for values_pairs in decoded_data:
+                pair = values_pairs.split(":")
+
+                data_list[pair[0]] = [pair[1]]
+
+            self.text_pipe.put(data_list)
+            server_logger.log_csv(data_list)
 
         self.text_thread = listen_thread(self.local_address, TEXT_PORT, self.kill_thread, target=handle_data, id=0)
         self.text_thread.start()
