@@ -19,10 +19,10 @@ COMMAND_TO_FUNC = {
 }
 
 REVERSE_FUNCTIONS = {
-    "land"
-    "back"
-    "right"
-    "down"
+    "land",
+    "back",
+    "right",
+    "down",
     "ccw"
 }
 
@@ -85,13 +85,12 @@ class mock_drone:
                         continue
 
                     data = data.decode(encoding="utf-8").split(" ")
-
                     
                     if (data[0] == "takeoff" or data[0] == "land"):
                         data.append(20)
 
                     data[1] = float(data[1])
-                    print(f"Drone recieved {data[0]} {data[1]}")
+                    print(f"Drone recieved '{data[0]} {data[1]}'")
 
                     if (data[0] in REVERSE_FUNCTIONS):
                         data[1] *= -1
