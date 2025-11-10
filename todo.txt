@@ -6,6 +6,13 @@ A way to visualize the data collected from the logger class
 2. A function to visualize multiple (two, hopefully more) data points against eachother
 3. Make sure the function can either use a sub section or all the data
 
+###############   Video reciever  ###############
+
+Change the listen_image thread so it takes listens for fragmentet frame data
+and passes the data to an implementation of the h264 video decoder.
+
+Just to have the max amount of controller over the system
+
 ###############      Tracker      ###############
 
 A function or class to ensure the drone is always following the dominate face
