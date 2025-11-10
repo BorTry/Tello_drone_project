@@ -10,6 +10,10 @@ class vizualizer:
         print(f"Reading: {self.filename}")
 
         self.text = pd.read_csv(f"{self.path}/data/{self.filename[-1]}") #leser nyeste csv-fila
+
+        data = pd.DataFrame(self.text)
+        print(data)
+        print(data["agx"])
         #print(self.text)
 
         # self.text = pd.read_csv(f"{self.path}/data/{"insert filename.csv"}") # csv override 
