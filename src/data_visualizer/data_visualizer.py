@@ -13,7 +13,7 @@ class vizualizer:
 
         self.text = pd.read_csv(f"{self.path}/data/{self.filename[-1]}") #leser nyeste csv-fila
 
-        self.data = pd.DataFrame(self.text)
+        self.data = pd.DataFrame(self.text) 
         
         #print(self.text)
 
