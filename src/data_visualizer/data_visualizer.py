@@ -11,9 +11,8 @@ class vizualizer:
 
         self.text = pd.read_csv(f"{self.path}/data/{self.filename[-1]}") #leser nyeste csv-fila
 
-        data = pd.DataFrame(self.text)
-        print(data)
-        print(data["agx"])
+        self.data = pd.DataFrame(self.text)
+        
         #print(self.text)
 
         # self.text = pd.read_csv(f"{self.path}/data/{"insert filename.csv"}") # csv override 
@@ -25,28 +24,13 @@ class vizualizer:
         #return self.clean_text
 
     def filter_text(self):
-        lines = self.text.astype(str).values.flatten().tolist()
+        print(self.data)
+        print(self.data["agx"])
 
-        data = []
-        for line in lines:
-            # Split by ';'
-            parts = line.split(';')
-            record = {}
-            for part in parts:
-                if ':' in part:
-                    key, value = part.split(':', 1)
-                    record[key.strip()] = value.strip()
+    def plot_data(self)
+        pass
 
-            data.append(record)
+if __name__ == "__main__":
+    testing = vizualizer()
 
-        # Make a DataFrame from all key-value pairs
-        self.filtered_text = pd.DataFrame(data)
-
-        print(self.filtered_text)
-        return self.filtered_text
-
-
-
-testing = vizualizer()
-
-testing.filter_text()
+    testing.filter_text()
