@@ -31,7 +31,7 @@ class recognition_wrapper:
                 - detected objects. (The top left, and size) optionally confidence score and label
 
         optional:
-        - run_once: If the init_func has to be run every iteration
+        - run_once: If the init_func only has to run once or every iteration
         - name: The name for the wrapper
         """
         self.init_val = init_func()

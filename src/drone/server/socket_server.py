@@ -94,6 +94,7 @@ class server:
         Sends a msg to the target address.
         """
 
+        print(f"Sending command '{msg}'")
         self.send_socket.sendto(msg.encode(encoding="utf-8"), (self.target_address, TEXT_SEND_PORT))
 
     def get_text(self):

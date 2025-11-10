@@ -16,8 +16,6 @@ class drone:
     def send(self, cmd):
         self.sock.send(cmd)
 
-        print(f"Sending command '{cmd}'")
-
     def takeoff(self):
         self.send("takeoff")
   
