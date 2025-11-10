@@ -10,14 +10,11 @@ from drone.gui.components.button import button
 from drone.gui.components.text_field import textfield
 from drone.gui.listeners import on_click
 
-# ======================= Socket Server =======================
+from drone.recognition_wrapper import recognition_wrapper
 
-Socket_server = server("0.0.0.0", "0.0.0.0")
-Socket_server.listen_text()
+import cv2
 
-# =========================== Drone ===========================
-
-drone = dr(Socket_server)
+from time import sleep
 
 # ======================== Mock Drone =========================
 
@@ -26,9 +23,25 @@ quit_event = Event()
 mock_drone = mdr(quit_event)
 mock_drone.run()
 
+sleep(1)
+
+# ======================= Socket Server =======================
+
+Socket_server = server("0.0.0.0", "0.0.0.0")
+Socket_server.listen_text()
+Socket_server.send("streamon")
+
+sleep(1)
+
+# =========================== Drone ===========================
+
+drone = dr(Socket_server)
+
 # ============================ GUI ============================
 
 def on_quit():
+    cv2.destroyAllWindows()
+
     Socket_server.stop()
 
     mock_drone.stop()
@@ -147,6 +160,25 @@ STAT_TO_FIELD = {
     "agz":ACC_Z,
 }
 
+# ================== Face recognition ==================
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+
+def get_next_image(cap):
+    return cap.read()
+
+def image_proc(frame):
+    return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+def detection(frame):
+    return face_cascade.detectMultiScale(
+        frame,
+        scaleFactor=1.1,     # image pyramid step
+        minNeighbors=5,      # higher = fewer (more confident) detections
+        minSize=(100, 100)     # ignore tiny detections
+    )
+
+cam = recognition_wrapper(lambda:cv2.VideoCapture("udp://127.0.0.1:11111?overrun_nonfatal=1&fifo_size=5000000"), get_next_image, image_proc, detection, run_once=True)
+
 def run_function():
     stats = Socket_server.get_text()
     if stats == None:
@@ -155,5 +187,9 @@ def run_function():
     for stat in stats.keys():
         if stat in STAT_TO_FIELD:
             STAT_TO_FIELD[stat].change_text(f"{stat} {stats[stat][0]}")
+
+    cam.run()
+
+print("opening GUI")
 
 main_screen.run(run_func=run_function, quit_func=on_quit)
