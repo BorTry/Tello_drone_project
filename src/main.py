@@ -23,7 +23,7 @@ from time import sleep
 # #mock_drone = mdr(quit_event)
 # #mock_drone.run()
 
-sleep(1)
+sleep(1)"""
 
 # ======================= Socket Server =======================
 
