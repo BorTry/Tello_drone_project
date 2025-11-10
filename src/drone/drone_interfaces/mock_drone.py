@@ -30,7 +30,7 @@ REVERSE_FUNCTIONS = {
 
 BIND_ADDRESS = "0.0.0.0"
 
-SEND_ADDRESS = "127.0.0.1"
+SEND_ADDRESS = "0.0.0.0"
 IMAGE_PORT = 11111
 
 WIDTH = 640
@@ -113,17 +113,17 @@ class mock_drone:
 
         ffmpeg_cmd = [
             "ffmpeg",
-            "-y",
+            "-re",
             "-f", "rawvideo",
             "-pix_fmt", "bgr24",
             "-s", f"{WIDTH}x{HEIGHT}",
             "-r", str(FPS),
-            "-i", "-",                 # read from stdin
+            "-i", "-",
             "-vcodec", "libx264",
             "-preset", "veryfast",
             "-tune", "zerolatency",
-            "-pix_fmt", "yuv420p",
-            "-x264-params", "keyint=30:scenecut=0:repeat-headers=1",
+            "-x264-params",
+            "keyint=15:min-keyint=15:scenecut=0:repeat-headers=1:vbv-bufsize=500:vbv-maxrate=1500",
             "-f", "h264",
             f"udp://{SEND_ADDRESS}:{IMAGE_PORT}"
         ]

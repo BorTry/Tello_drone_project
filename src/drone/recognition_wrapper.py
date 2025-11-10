@@ -7,7 +7,7 @@ def generator(gen_func, gen_val, run_once):
     return wrap
 
 class recognition_wrapper:
-    def __init__(self, init_func, get_image_func, processing_func, detection_func, run_once=False, name="webcam"):
+    def __init__(self, init_func, get_image_func, processing_func, detection_func, run_once=False, name="webcam", empty_buffer=False):
         """
         Creates a wrapper for cv2 detection
 
@@ -102,27 +102,3 @@ class recognition_wrapper:
             cap.close()
         elif hasattr(cap, "stop") and callable(cap.stop):
             cap.stop()
-
-if __name__ == "__main__":
-    def main():
-        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-
-        def image_proc(frame):
-            return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        def detection(frame):
-            return face_cascade.detectMultiScale(
-                frame,
-                scaleFactor=1.1,     # image pyramid step
-                minNeighbors=5,      # higher = fewer (more confident) detections
-                minSize=(100, 100)     # ignore tiny detections
-            )
-
-        cam = recognition_wrapper(lambda:cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION), lambda cap: cap.read(), image_proc, detection, run_once=True)
-
-        while True:
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-            cam.run()
-
-    main()
