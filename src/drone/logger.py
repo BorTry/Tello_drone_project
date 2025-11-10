@@ -71,3 +71,5 @@ class logger:
         return sub_logger(self, logger_name)
 
 LOGGER = logger() # The variable that should be imported
+
+LOGGER.log_csv("asdaf")

@@ -20,6 +20,29 @@ class vizualizer:
         print(self.cleaned_text)
         #return self.clean_text
 
+    def filter_text(self):
+        lines = self.text.astype(str).values.flatten().tolist()
+
+        data = []
+        for line in lines:
+            # Split by ';'
+            parts = line.split(';')
+            record = {}
+            for part in parts:
+                if ':' in part:
+                    key, value = part.split(':', 1)
+                    record[key.strip()] = value.strip()
+
+            data.append(record)
+
+        # Make a DataFrame from all key-value pairs
+        self.filtered_text = pd.DataFrame(data)
+
+        print(self.filtered_text)
+        return self.filtered_text
+
+
+
 testing = vizualizer()
 
-testing.clean_text()
+testing.filter_text()
