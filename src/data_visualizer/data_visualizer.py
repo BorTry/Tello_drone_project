@@ -91,4 +91,4 @@ if __name__ == "__main__":
 
 testing = vizualizer()
 
-testing.plot_data(("height", "yaw", "pitch"))
+testing.plot_data(("height"))

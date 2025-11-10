@@ -47,8 +47,6 @@ class server:
 
         self.send_socket = socket(AF_INET, SOCK_DGRAM)
 
-        self.recieve_socket = socket(AF_INET, SOCK_DGRAM)
-
         self.kill_thread = Event()
 
         self.recieve_thread = None
@@ -92,7 +90,7 @@ class server:
         self.recieve_thread = listen_thread(self.local_address, RETURN_PORT, self.kill_thread, target=handle_return_data, id=0)
         self.recieve_thread.start()
 
-        self.text_thread = listen_thread(self.local_address, TEXT_PORT, self.kill_thread, target=handle_data, id=0)
+        self.text_thread = listen_thread(self.local_address, TEXT_PORT, self.kill_thread, target=handle_data, id=1)
         self.text_thread.start()
 
     def listen_image(self):
@@ -117,7 +115,7 @@ class server:
                 self.image_pipe.put(last_frame)
                 self.variable_data["packets"] = ""
 
-        self.image_thread = listen_thread(self.local_address, IMAGE_PORT, self.kill_thread, variable_data=variable_data, target=handle_data, id=1)
+        self.image_thread = listen_thread(self.local_address, IMAGE_PORT, self.kill_thread, variable_data=variable_data, target=handle_data, id=2)
         self.image_thread.start()
 
         self.send("streamon")
@@ -144,7 +142,7 @@ class server:
         Sends a msg to the target address.
         """
 
-        print(f"Sending command '{msg}'")
+        print(f"Sending command '{msg}' to {self.target_address}:{TEXT_SEND_PORT}")
         self.send_socket.sendto(msg.encode(encoding="utf-8"), (self.target_address, TEXT_SEND_PORT))
 
     def get_text(self):
@@ -168,6 +166,9 @@ class server:
 
         if (self.image_thread):
             self.image_thread.stop()
+
+        if (self.recieve_thread):
+            self.recieve_thread.stop()
 
         self.send_socket.close()
 
