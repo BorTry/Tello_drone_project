@@ -28,25 +28,27 @@ class screen:
 
         self.screen = p.display.set_mode([width, height])
         self.screen.fill(BGC)
-        pass
 
-    def run(self, run_func=None):
+    def run(self, run_func=None, quit_func=None):
         """
         runs the screen
 
         optional:
         - run_func: a function that is ran every frame
         """
-        while True:
-            if (self.handle_events()): break
+        run = True
+        while run:
+            if (self.handle_events()): 
+                run = False
+
             self.comp_handler.run(self.screen)
 
             if run_func:
                 run_func()
 
-            for event in p.event.get():
-                    if event.type == p.QUIT:
-                        return "quit"
+            if not run and quit_func:
+                quit_func()
+                p.quit()
             
             self.clock.tick(self.fps)
                     
@@ -60,6 +62,5 @@ class screen:
                     self.comp_handler.run_event(listener)
             
             if event.type == p.QUIT:
-                p.quit()
                 return True
         return False
