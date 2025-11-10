@@ -81,7 +81,6 @@ class mock_drone:
 
     def send_image(self):
         if not self.streamOn:
-            print("not streaming...")
             return
         
         ok, image = self.cap.read()
@@ -138,8 +137,10 @@ class mock_drone:
                     data, a = self.socket.recvfrom(BUFFER_SIZE)
 
                     if not data:
+                        self.socket.sendto(b"error", ("0.0.0.0", 9000))
                         continue
 
+                    self.socket.sendto(b"ok", ("0.0.0.0", 9000))
                     data = data.decode(encoding="utf-8").split(" ")
 
                     print(f"Drone recieved '{data[0]}'")

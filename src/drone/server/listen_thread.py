@@ -53,7 +53,7 @@ class listen_thread:
                 try:
                     data, _ = self.socket.recvfrom(BUFFER_SIZE)
 
-                    self.target(self, data)
+                    self.target(self.function_variables, data)
 
                 except TimeoutError:
                     continue

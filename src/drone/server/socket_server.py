@@ -64,7 +64,7 @@ class server:
         """
         Opens the text socket and starts listening.
         """
-        def handle_data(ooga, data):
+        def handle_data(function_variables, data):
             # put the recieved data into a pipe
             decoded_data = data.decode(encoding="utf-8").split(";")
 
@@ -83,7 +83,7 @@ class server:
 
             server_logger.log_csv(data_list)
 
-        def handle_return_data(self, data):
+        def handle_return_data(function_variables, data):
             decoded_data = data.decode(encoding="utf-8")
             print(f"recieved {decoded_data} from drone")
 
@@ -101,19 +101,19 @@ class server:
             "packets"
         ]
 
-        def handle_data(self, data):
-            if self.variable_data["packets"] is None:
-                self.variable_data["packets"] = ""
+        def handle_data(function_variables, data):
+            if variable_data["packets"] is None:
+                variable_data["packets"] = ""
 
-            self.variable_data["packets"] += data
+            variable_data["packets"] += data
             if len(data) != 1460:
                 last_frame = None
 
-                for frame in self.__h264decode(self.variable_data["packets"]):
+                for frame in self.__h264decode(variable_data["packets"]):
                     last_frame = frame # get the last frame given to the server
                 
                 self.image_pipe.put(last_frame)
-                self.variable_data["packets"] = ""
+                variable_data["packets"] = ""
 
         self.image_thread = listen_thread(self.local_address, IMAGE_PORT, self.kill_thread, variable_data=variable_data, target=handle_data, id=2)
         self.image_thread.start()

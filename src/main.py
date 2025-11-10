@@ -4,6 +4,7 @@ from drone.drone_interfaces.drone_interface import drone as dr
 from drone.drone_interfaces.mock_drone import mock_drone as mdr
 
 from threading import Event
+from socket import socket, AF_INET, SOCK_DGRAM
 
 from drone.gui.screen import screen
 from drone.gui.components.button import button
@@ -18,22 +19,22 @@ from time import sleep
 
 # ======================== Mock Drone =========================
 
-""""quit_event = Event()
+quit_event = Event()
 
 mock_drone = mdr(quit_event)
 mock_drone.run()
 
-sleep(1)"""
+sleep(1)
 
 # ======================= Socket Server =======================
 
-Socket_server = server("192.168.10.2", "192.168.10.1")
+Socket_server = server("0.0.0.0", "0.0.0.0")
 Socket_server.listen_text()
 
 # =========================== Drone ===========================
 
 drone = dr(Socket_server)
-# Socket_server.send("streamon")
+#Socket_server.send("streamon")
 
 # ============================ GUI ============================
 
@@ -144,7 +145,7 @@ main_screen.add_component(ACC_Y)
 main_screen.add_component(ACC_Z)
 
 STAT_TO_FIELD = {
-    "battery": BATTERY,
+    "bat": BATTERY,
     "time": TIME,
     "agx":ACC_X,
     "agy":ACC_Y,
@@ -194,7 +195,7 @@ def on_quit():
 
     Socket_server.stop()
 
-    #mock_drone.stop()
+    mock_drone.stop()
 
 print("opening GUI")
 
