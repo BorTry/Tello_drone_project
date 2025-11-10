@@ -35,7 +35,7 @@ IMAGE_PORT = 11111
 
 WIDTH = 640
 HEIGHT = 480
-FPS = 30
+FPS = 10
 
 class mock_drone:
     """
@@ -100,8 +100,10 @@ class mock_drone:
             self.thread.join()
 
         self.socket.close()
+
         self.cap.release()
         self.proc.stdin.close()
+        self.proc.terminate()
         self.proc.wait()
         print("Stopped video.")
         print("Successfully stopped mock drone")

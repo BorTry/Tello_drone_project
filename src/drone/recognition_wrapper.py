@@ -92,6 +92,16 @@ class recognition_wrapper:
                 mw, mh = w, h
 
         return objects[largest_index]
+    
+    def stop(self):
+        cap = self.gen()
+
+        if hasattr(cap, "release") and callable(cap.release):
+            cap.release()
+        elif hasattr(cap, "close") and callable(cap.close):
+            cap.close()
+        elif hasattr(cap, "stop") and callable(cap.stop):
+            cap.stop()
 
 if __name__ == "__main__":
     def main():

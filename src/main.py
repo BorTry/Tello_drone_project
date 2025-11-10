@@ -39,13 +39,6 @@ drone = dr(Socket_server)
 
 # ============================ GUI ============================
 
-def on_quit():
-    cv2.destroyAllWindows()
-
-    Socket_server.stop()
-
-    mock_drone.stop()
-
 main_screen = screen(1000, 562, (on_click, ), BGC=(25, 25, 25))
 
 TITLE_WIDTH = 400
@@ -172,12 +165,12 @@ def image_proc(frame):
 def detection(frame):
     return face_cascade.detectMultiScale(
         frame,
-        scaleFactor=1.1,     # image pyramid step
-        minNeighbors=5,      # higher = fewer (more confident) detections
-        minSize=(100, 100)     # ignore tiny detections
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(100, 100)
     )
 
-cam = recognition_wrapper(lambda:cv2.VideoCapture("udp://127.0.0.1:11111?overrun_nonfatal=1&fifo_size=5000000"), get_next_image, image_proc, detection, run_once=True)
+cam = recognition_wrapper(lambda:cv2.VideoCapture("udp://127.0.0.1:11111"), get_next_image, image_proc, detection, run_once=True)
 
 def run_function():
     stats = Socket_server.get_text()
@@ -189,6 +182,14 @@ def run_function():
             STAT_TO_FIELD[stat].change_text(f"{stat} {stats[stat][0]}")
 
     cam.run()
+
+def on_quit():
+    cv2.destroyAllWindows()
+    cam.stop()
+
+    Socket_server.stop()
+
+    mock_drone.stop()
 
 print("opening GUI")
 
