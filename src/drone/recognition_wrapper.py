@@ -59,19 +59,33 @@ class recognition_wrapper:
 
         self.draw(detection_objects, col_frame) # tegn på rektangler for hvert objekt
 
+        return detection_objects, col_frame
+
     def draw(self, detection_objects, frame):
         if (len(detection_objects) > 0):
             match(len(detection_objects[0])):
                 case 4: # bare x, y, w og h verdier.
+                    index = 0
+                    index_largest, mw, mh = 0, 0, 0
+
                     for (x, y, w, h) in detection_objects:
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+                        if w * h > mw * mh:
+                            index_largest = index
+                            mw, mh = w, h
+
+                        index += 1
+                
+                    x, y, w, h = detection_objects[index_largest]
+                    cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)
 
                 case 6: # inneholder alle hjørner, classification og sikkerhets verdier
                     for (x1,y1,x2,y2,cls,score) in detection_objects:
                         cv2.rectangle(frame, (x1,y1), (x2,y2), (0,255,0), 2)
                         cv2.putText(frame, f"{self.classes[cls]} {score:.2f}", (x1, max(15, y1-7)),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
-        
+
         cv2.imshow(self.name, frame)
 
     def get_dominant_object(objects):

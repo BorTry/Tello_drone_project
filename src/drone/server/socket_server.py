@@ -7,6 +7,7 @@ from drone.logger import LOGGER
 
 import numpy as np
 import h264decoder
+from cv2 import cvtColor, COLOR_BGR2RGB
 
 server_logger = LOGGER.get_logger("Socket server")
 
@@ -112,8 +113,9 @@ class server:
                 
                 for frame in self.__h264decode(function_variables["packets"]):
                     last_frame = frame # get the last frame given to the server
+
                 if not (last_frame is None):
-                    self.image_pipe.put(last_frame)
+                    self.image_pipe.put(cvtColor(last_frame, COLOR_BGR2RGB))
 
                 function_variables["packets"] = b""
 
@@ -130,11 +132,10 @@ class server:
             (frame, w, h, ls) = framedata
 
             if frame is not None:
-                # print 'frame size %i bytes, w %i, h %i, linesize %i' % (len(frame), w, h, ls)
-
                 frame = np.fromstring(frame, dtype=np.ubyte, count=len(frame), sep='')
                 frame = (frame.reshape((h, ls // 3, 3)))
                 frame = frame[:, :w, :]
+                
                 res_frame_list.append(frame)
 
         return res_frame_list
