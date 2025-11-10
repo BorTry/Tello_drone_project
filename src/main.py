@@ -29,7 +29,7 @@ sleep(1)
 # ======================= Socket Server =======================
 
 Socket_server = server("0.0.0.0", "0.0.0.0")
-Socket_server.listen_text()
+Socket_server.listen()
 
 # =========================== Drone ===========================
 
@@ -156,7 +156,9 @@ STAT_TO_FIELD = {
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
 def get_next_image(cap):
-    return cap.read()
+    image_frag = cap.get_image()
+
+    return not (image_frag is None), image_frag
 
 def image_proc(frame):
     return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -169,14 +171,13 @@ def detection(frame):
         minSize=(100, 100)
     )
 
-"""cam = recognition_wrapper(
-        lambda:cv2.VideoCapture("udp://0.0.0.0:11111?fifo_size=50000&overrun_nonfatal=1"), 
-        get_next_image, 
-        image_proc, 
-        detection, 
-        run_once=True,
-        empty_buffer=True    
-    )"""
+cam = recognition_wrapper(
+    lambda:Socket_server, 
+    get_next_image, 
+    image_proc, 
+    detection, 
+    run_once=True,
+)
 
 def run_function():
     stats = Socket_server.get_text()
@@ -187,11 +188,11 @@ def run_function():
         if stat in STAT_TO_FIELD:
             STAT_TO_FIELD[stat].change_text(f"{stat}: {stats[stat][0]}")
 
-    #cam.run()
+    cam.run()
 
 def on_quit():
     cv2.destroyAllWindows()
-    #cam.stop()
+    cam.stop()
 
     Socket_server.stop()
 

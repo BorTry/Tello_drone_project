@@ -7,7 +7,7 @@ def generator(gen_func, gen_val, run_once):
     return wrap
 
 class recognition_wrapper:
-    def __init__(self, init_func, get_image_func, processing_func, detection_func, run_once=False, name="webcam", empty_buffer=False):
+    def __init__(self, init_func, get_image_func, processing_func, detection_func, run_once=False, name="webcam"):
         """
         Creates a wrapper for cv2 detection
 

@@ -35,7 +35,7 @@ class listen_thread:
 
         if function_variables != None:
             for var in function_variables:
-                self.function_variables[var] = 0
+                self.function_variables[var[0]] = var[1]
 
         if (self.timeout > 0):
             self.socket.settimeout(self.timeout)
