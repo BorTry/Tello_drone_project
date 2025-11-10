@@ -4,7 +4,7 @@ from socket import socket, AF_INET, SOCK_DGRAM
 BUFFER_SIZE = 2048
 
 class listen_thread:
-    def __init__(self, address:str, port:int, event_signal:Event, timeout=0.5, target=None, id=0):
+    def __init__(self, address:str, port:int, event_signal:Event, timeout=0.5, target=None, function_variables=None, id=0):
         """
         listen thread
 
@@ -18,6 +18,7 @@ class listen_thread:
         - target: target function
             - required:
                 - unproccessed data
+        - function_variables: extra variables that the run function needs. sets them to 0
         - id: id of the thread, only used for print statements
         """
         self.socket = socket(AF_INET, SOCK_DGRAM)
@@ -29,6 +30,12 @@ class listen_thread:
 
         self.thread = None
         self.id = id
+
+        self.function_variables = {}
+
+        if function_variables != None:
+            for var in function_variables:
+                self.function_variables[var] = 0
 
         if (self.timeout > 0):
             self.socket.settimeout(self.timeout)
@@ -44,9 +51,9 @@ class listen_thread:
         def wrap():
             while not self.kill_thread.is_set():
                 try:
-                    data, a = self.socket.recvfrom(BUFFER_SIZE)
+                    data, _ = self.socket.recvfrom(BUFFER_SIZE)
 
-                    self.target(data)
+                    self.target(self, data)
 
                 except TimeoutError:
                     continue

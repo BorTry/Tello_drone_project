@@ -66,7 +66,7 @@ class recognition_wrapper:
                     for (x, y, w, h) in detection_objects:
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-                case 6: # inneholder alle hjørner, og classification sikkerhets verdier
+                case 6: # inneholder alle hjørner, classification og sikkerhets verdier
                     for (x1,y1,x2,y2,cls,score) in detection_objects:
                         cv2.rectangle(frame, (x1,y1), (x2,y2), (0,255,0), 2)
                         cv2.putText(frame, f"{self.classes[cls]} {score:.2f}", (x1, max(15, y1-7)),

@@ -18,6 +18,10 @@ Just to have the max amount of controller over the system
 A function or class to ensure the drone is always following the dominate face
 in any given image
 
+###############    PID-systems    ###############
+
+Added PID-systems to regulate the movement when tracking a person
+
 ############### Finish everything ###############
 
 Tie all the functions and classes together...

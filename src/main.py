@@ -18,24 +18,22 @@ from time import sleep
 
 # ======================== Mock Drone =========================
 
-# quit_event = Event()
+""""quit_event = Event()
 
 # #mock_drone = mdr(quit_event)
 # #mock_drone.run()
 
-# sleep(1)
+sleep(1)
 
 # ======================= Socket Server =======================
 
-Socket_server = server("0.0.0.0", "192.168.10.1")
+Socket_server = server("192.168.10.2", "192.168.10.1")
 Socket_server.listen_text()
-Socket_server.send("streamon")
-
-sleep(1)
 
 # =========================== Drone ===========================
 
 drone = dr(Socket_server)
+# Socket_server.send("streamon")
 
 # ============================ GUI ============================
 
@@ -170,14 +168,14 @@ def detection(frame):
         minSize=(100, 100)
     )
 
-cam = recognition_wrapper(
+"""cam = recognition_wrapper(
         lambda:cv2.VideoCapture("udp://0.0.0.0:11111?fifo_size=50000&overrun_nonfatal=1"), 
         get_next_image, 
         image_proc, 
         detection, 
         run_once=True,
         empty_buffer=True    
-    )
+    )"""
 
 def run_function():
     stats = Socket_server.get_text()
@@ -188,15 +186,15 @@ def run_function():
         if stat in STAT_TO_FIELD:
             STAT_TO_FIELD[stat].change_text(f"{stat}: {stats[stat][0]}")
 
-    cam.run()
+    #cam.run()
 
 def on_quit():
     cv2.destroyAllWindows()
-    cam.stop()
+    #cam.stop()
 
     Socket_server.stop()
 
-    mock_drone.stop()
+    #mock_drone.stop()
 
 print("opening GUI")
 
