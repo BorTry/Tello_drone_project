@@ -44,6 +44,9 @@ class drone:
     def down(self, amount):
         self.send(f"down {amount}")
 
+    def to(self, x, y, z, speed):
+        self.send(f"go {x} {y} {z} {speed}")
+
     def rotation_clock(self, deg): #clockwise rotation
         self.send(f"cw {deg}")
 
