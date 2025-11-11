@@ -37,14 +37,4 @@ class tracker:
         dx, dy = self.center_around_point(center_point)
         distance = self.get_distance(center_point, (center_point[0] - dx, center_point[1] - dy))
 
-        if dx > 10:
-            self.drone.right(5/distance)
-        if dx < 10:
-            self.drone.left(5/distance)
-
-        if dy > 10:
-            self.drone.up(5/distance)
-        if dy < 10:
-            self.drone.down(5/distance)
-        
-
+        self.drone.to(dx, dy, 0, distance/100)

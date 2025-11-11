@@ -145,15 +145,16 @@ class mock_drone:
 
                     print(f"Drone recieved '{data[0]}'")
 
-                    if data[0] == "streamon":
-                        self.streamOn = True
-                        continue
-
-                    if data[0] == "command":
-                        continue
-  
-                    if (data[0] == "takeoff" or data[0] == "land"):
-                        data.append(20)
+                    match(data[0]):
+                        case "streamon":
+                            self.streamOn = True
+                            continue
+                        case "command":
+                            continue
+                        case "go":
+                            continue
+                        case "takeoff"|"land":
+                            data.append(20)
 
                     data[1] = float(data[1])
 
