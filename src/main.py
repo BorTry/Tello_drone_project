@@ -116,10 +116,17 @@ DISPLAY_Y = BUTTON_Y_OFFSET + TITLE_Y + 250  # definerer at display-verdiene ska
 CENTER_X = (main_screen.size[0] // 2) - (BUTTON_SIZE[0] // 2)
 START_Y = DISPLAY_Y + FACE_B_SIZE[1]
 
+automatic_mode = False
+
+def switch_mode(comp):
+    global automatic_mode
+    print("Switching mode...")
+    automatic_mode = not automatic_mode
+
 FACE_TRACK = button(
     (FACE_B_START, START_Y - (FACE_B_SIZE[1] + 10)),                   
     FACE_B_SIZE,
-    lambda x: print("Automatic mode on"),
+    switch_mode,
     color=(0, 200, 255),
     text="Automatic mode"
 )
@@ -203,7 +210,8 @@ def run_function():
 
         cv2.line(cam.last_frame, (center_point_obj[0] - dx, center_point_obj[1] - dy), center_point_obj, (0,0,255))
 
-        track.run(dominant_obj)
+        if automatic_mode:
+            track.run(dominant_obj)
 
     if data:
         cam.show_frame()
