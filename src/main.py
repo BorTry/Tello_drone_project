@@ -22,8 +22,8 @@ from time import sleep
 
 quit_event = Event()
 
-mock_drone = mdr(quit_event)
-mock_drone.run()
+# #mock_drone = mdr(quit_event)
+# #mock_drone.run()
 
 sleep(1)
 
