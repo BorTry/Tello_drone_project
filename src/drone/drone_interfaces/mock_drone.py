@@ -104,7 +104,6 @@ class mock_drone:
         self.proc.stdin.close()
         self.proc.terminate()
         self.proc.wait()
-        print("Stopped video.")
         print("Successfully stopped mock drone")
 
     def run(self):
@@ -127,7 +126,12 @@ class mock_drone:
             f"udp://{SEND_ADDRESS}:{IMAGE_PORT}"
         ]
 
-        self.proc = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
+        self.proc = subprocess.Popen(
+            ffmpeg_cmd, 
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,  # hide normal output
+            stderr=subprocess.DEVNULL,
+        )
 
         def wrap():
             from time import sleep
@@ -142,8 +146,6 @@ class mock_drone:
 
                     self.socket.sendto(b"ok", ("0.0.0.0", 9000))
                     data = data.decode(encoding="utf-8").split(" ")
-
-                    print(f"Drone recieved '{data[0]}'")
 
                     match(data[0]):
                         case "streamon":
