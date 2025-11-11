@@ -1,10 +1,10 @@
 class drone:
     """
-    Interface for the Tello drone
+    digital equivalen of the tello drone
     """
     def __init__(self, sock):
         """
-        Tello drone
+        digital equivalent of the tello drone, if given follows the real world drone
 
         required:
         - sock: A socket connection to send the data to the drone
@@ -13,6 +13,7 @@ class drone:
 
         self.send("command") # gå i SDK modus for pre-programerte bevegelser i python
 
+    # ================== Send Commands ==================
     def send(self, cmd):
         self.sock.send(cmd)
 
@@ -51,4 +52,3 @@ class drone:
 
     def speed(self, cms): #cm per sekund
         self.send(f"speed {cms}")
-

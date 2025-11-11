@@ -4,7 +4,7 @@ from drone.drone_interfaces.drone_interface import drone as dr
 from drone.drone_interfaces.mock_drone import mock_drone as mdr
 
 from threading import Event
-from socket import socket, AF_INET, SOCK_DGRAM
+
 
 from drone.gui.screen import screen
 from drone.gui.components.button import button
@@ -12,6 +12,7 @@ from drone.gui.components.text_field import textfield
 from drone.gui.listeners import on_click
 
 from drone.recognition_wrapper import recognition_wrapper
+from drone.tracker import tracker
 
 import cv2
 
@@ -34,7 +35,6 @@ Socket_server.listen()
 # =========================== Drone ===========================
 
 drone = dr(Socket_server)
-#Socket_server.send("streamon")
 
 # ============================ GUI ============================
 
@@ -179,6 +179,11 @@ cam = recognition_wrapper(
     run_once=True,
 )
 
+WIDTH = 640
+HEIGHT = 480
+
+track = tracker((WIDTH, HEIGHT), drone)
+
 def run_function():
     stats = Socket_server.get_text()
     if stats == None:
@@ -188,7 +193,20 @@ def run_function():
         if stat in STAT_TO_FIELD:
             STAT_TO_FIELD[stat].change_text(f"{stat}: {stats[stat][0]}")
 
-    cam.run()
+    data = cam.run()
+
+    if data and len(data[0]) > 0:
+        dominant_obj = cam.get_dominant_object(data[0])
+
+        center_point_obj = track.get_center_of_object(dominant_obj)
+        dx, dy = track.center_around_point(center_point_obj)
+
+        cv2.line(cam.last_frame, (center_point_obj[0] - dx, center_point_obj[1] - dy), center_point_obj, (0,0,255))
+
+        track.run(dominant_obj)
+
+    if data:
+        cam.show_frame()
 
 def on_quit():
     cv2.destroyAllWindows()
