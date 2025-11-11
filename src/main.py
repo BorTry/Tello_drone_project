@@ -5,12 +5,14 @@ from drone.drone_interfaces.mock_drone import mock_drone as mdr
 
 from threading import Event
 
+
 from drone.gui.screen import screen
 from drone.gui.components.button import button
 from drone.gui.components.text_field import textfield
 from drone.gui.listeners import on_click
 
 from drone.recognition_wrapper import recognition_wrapper
+from drone.tracker import tracker
 
 import cv2
 
@@ -18,22 +20,21 @@ from time import sleep
 
 # ======================== Mock Drone =========================
 
-""""quit_event = Event()
+quit_event = Event()
 
 # #mock_drone = mdr(quit_event)
 # #mock_drone.run()
 
-sleep(1)"""
+sleep(1)
 
 # ======================= Socket Server =======================
 
-Socket_server = server("192.168.10.2", "192.168.10.1")
-Socket_server.listen_text()
+Socket_server = server("0.0.0.0", "0.0.0.0")
+Socket_server.listen()
 
 # =========================== Drone ===========================
 
 drone = dr(Socket_server)
-# Socket_server.send("streamon")
 
 # ============================ GUI ============================
 
@@ -115,10 +116,17 @@ DISPLAY_Y = BUTTON_Y_OFFSET + TITLE_Y + 250  # definerer at display-verdiene ska
 CENTER_X = (main_screen.size[0] // 2) - (BUTTON_SIZE[0] // 2)
 START_Y = DISPLAY_Y + FACE_B_SIZE[1]
 
+automatic_mode = False
+
+def switch_mode(comp):
+    global automatic_mode
+    print("Switching mode...")
+    automatic_mode = not automatic_mode
+
 FACE_TRACK = button(
     (FACE_B_START, START_Y - (FACE_B_SIZE[1] + 10)),                   
     FACE_B_SIZE,
-    lambda x: print("Automatic mode on"),
+    switch_mode,
     color=(0, 200, 255),
     text="Automatic mode"
 )
@@ -144,7 +152,7 @@ main_screen.add_component(ACC_Y)
 main_screen.add_component(ACC_Z)
 
 STAT_TO_FIELD = {
-    "battery": BATTERY,
+    "bat": BATTERY,
     "time": TIME,
     "agx":ACC_X,
     "agy":ACC_Y,
@@ -155,7 +163,9 @@ STAT_TO_FIELD = {
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
 def get_next_image(cap):
-    return cap.read()
+    image_frag = cap.get_image()
+
+    return not (image_frag is None), image_frag
 
 def image_proc(frame):
     return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -168,14 +178,18 @@ def detection(frame):
         minSize=(100, 100)
     )
 
-"""cam = recognition_wrapper(
-        lambda:cv2.VideoCapture("udp://0.0.0.0:11111?fifo_size=50000&overrun_nonfatal=1"), 
-        get_next_image, 
-        image_proc, 
-        detection, 
-        run_once=True,
-        empty_buffer=True    
-    )"""
+cam = recognition_wrapper(
+    lambda:Socket_server, 
+    get_next_image, 
+    image_proc, 
+    detection, 
+    run_once=True,
+)
+
+WIDTH = 640
+HEIGHT = 480
+
+track = tracker((WIDTH, HEIGHT), drone)
 
 def run_function():
     stats = Socket_server.get_text()
@@ -186,15 +200,29 @@ def run_function():
         if stat in STAT_TO_FIELD:
             STAT_TO_FIELD[stat].change_text(f"{stat}: {stats[stat][0]}")
 
-    #cam.run()
+    data = cam.run()
+
+    if data and len(data[0]) > 0:
+        dominant_obj = cam.get_dominant_object(data[0])
+
+        center_point_obj = track.get_center_of_object(dominant_obj)
+        dx, dy = track.center_around_point(center_point_obj)
+
+        cv2.line(cam.last_frame, (center_point_obj[0] - dx, center_point_obj[1] - dy), center_point_obj, (0,0,255))
+
+        if automatic_mode:
+            track.run(dominant_obj)
+
+    if data:
+        cam.show_frame()
 
 def on_quit():
     cv2.destroyAllWindows()
-    #cam.stop()
+    cam.stop()
 
     Socket_server.stop()
 
-    #mock_drone.stop()
+    mock_drone.stop()
 
 print("opening GUI")
 

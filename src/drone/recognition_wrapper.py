@@ -7,7 +7,7 @@ def generator(gen_func, gen_val, run_once):
     return wrap
 
 class recognition_wrapper:
-    def __init__(self, init_func, get_image_func, processing_func, detection_func, run_once=False, name="webcam", empty_buffer=False):
+    def __init__(self, init_func, get_image_func, processing_func, detection_func, run_once=False, name="webcam"):
         """
         Creates a wrapper for cv2 detection
 
@@ -35,6 +35,7 @@ class recognition_wrapper:
         - name: The name for the wrapper
         """
         self.init_val = init_func()
+        self.last_frame = None
 
         self.gen = generator(init_func, self.init_val, run_once)
 
@@ -59,22 +60,40 @@ class recognition_wrapper:
 
         self.draw(detection_objects, col_frame) # tegn på rektangler for hvert objekt
 
+        return detection_objects, col_frame
+
     def draw(self, detection_objects, frame):
         if (len(detection_objects) > 0):
             match(len(detection_objects[0])):
                 case 4: # bare x, y, w og h verdier.
+                    index = 0
+                    index_largest, mw, mh = 0, 0, 0
+
                     for (x, y, w, h) in detection_objects:
                         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+                        if w * h > mw * mh:
+                            index_largest = index
+                            mw, mh = w, h
+
+                        index += 1
+                
+                    x, y, w, h = detection_objects[index_largest]
+                    cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)
+                    cv2.circle(frame, (x + (w//2), y + (h//2)), 5, (0, 0, 255))
 
                 case 6: # inneholder alle hjørner, classification og sikkerhets verdier
                     for (x1,y1,x2,y2,cls,score) in detection_objects:
                         cv2.rectangle(frame, (x1,y1), (x2,y2), (0,255,0), 2)
                         cv2.putText(frame, f"{self.classes[cls]} {score:.2f}", (x1, max(15, y1-7)),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
-        
-        cv2.imshow(self.name, frame)
 
-    def get_dominant_object(objects):
+        self.last_frame = frame
+
+    def show_frame(self):
+        cv2.imshow(self.name, self.last_frame)
+
+    def get_dominant_object(self, objects):
         """
         Returns the dominante object in a list of detection objects
         """
@@ -82,7 +101,7 @@ class recognition_wrapper:
             return None
         
         largest_index = 0
-        mw, mh = largest_index[2], largest_index[3] # max width and height 
+        mw, mh = objects[0][2], objects[0][3] # max width and height 
 
         for index in range(len(objects)):
             x, y, w, h = objects[index]

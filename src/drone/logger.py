@@ -27,7 +27,8 @@ class sub_logger:
 class logger:
     def __init__(self):
         date = datetime.datetime.now()
-        self.formatted_date = f"{date.year}-{date.month}-{date.day}"
+        time = date.time()
+        self.formatted_date = f"{date.year}-{date.month}-{date.day}[{time.hour}:{time.minute}:{time.second}]"
 
         self.path = __file__.replace("/src/drone/logger.py", "") # get the project path
 

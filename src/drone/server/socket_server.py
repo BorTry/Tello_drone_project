@@ -6,6 +6,8 @@ from drone.server.listen_thread import listen_thread
 from drone.logger import LOGGER
 
 import numpy as np
+import h264decoder
+from cv2 import cvtColor, COLOR_BGR2RGB
 
 server_logger = LOGGER.get_logger("Socket server")
 
@@ -53,6 +55,8 @@ class server:
         self.text_thread = None
         self.image_thread = None
 
+        self.decoder = h264decoder.H264Decoder()
+
     def listen(self):
         """
         Opens all sockets and starts listening.
@@ -64,7 +68,7 @@ class server:
         """
         Opens the text socket and starts listening.
         """
-        def handle_data(ooga, data):
+        def handle_data(function_variables, data):
             # put the recieved data into a pipe
             decoded_data = data.decode(encoding="utf-8").split(";")
 
@@ -83,7 +87,7 @@ class server:
 
             server_logger.log_csv(data_list)
 
-        def handle_return_data(self, data):
+        def handle_return_data(function_variables, data):
             decoded_data = data.decode(encoding="utf-8")
             print(f"recieved {decoded_data} from drone")
 
@@ -98,41 +102,40 @@ class server:
         Opens the image socket and starts listening.
         """
         variable_data = [
-            "packets"
+            ["packets", b""]
         ]
 
-        def handle_data(self, data):
-            if self.variable_data["packets"] is None:
-                self.variable_data["packets"] = ""
-
-            self.variable_data["packets"] += data
+        def handle_data(function_variables, data):
+            function_variables["packets"] += data
+            
             if len(data) != 1460:
                 last_frame = None
-
-                for frame in self.__h264decode(self.variable_data["packets"]):
-                    last_frame = frame # get the last frame given to the server
                 
-                self.image_pipe.put(last_frame)
-                self.variable_data["packets"] = ""
+                for frame in self.__h264decode(function_variables["packets"]):
+                    last_frame = frame # get the last frame given to the server
 
-        self.image_thread = listen_thread(self.local_address, IMAGE_PORT, self.kill_thread, variable_data=variable_data, target=handle_data, id=2)
+                if not (last_frame is None):
+                    self.image_pipe.put(cvtColor(last_frame, COLOR_BGR2RGB))
+
+                function_variables["packets"] = b""
+
+        self.image_thread = listen_thread(self.local_address, IMAGE_PORT, self.kill_thread, function_variables=variable_data, target=handle_data, id=2)
         self.image_thread.start()
 
         self.send("streamon")
     
     def __h264decode(self, packets):
         res_frame_list = []
-        frames = (packets)
+        frames = self.decoder.decode(packets)
         
         for framedata in frames:
             (frame, w, h, ls) = framedata
 
             if frame is not None:
-                # print 'frame size %i bytes, w %i, h %i, linesize %i' % (len(frame), w, h, ls)
-
                 frame = np.fromstring(frame, dtype=np.ubyte, count=len(frame), sep='')
-                frame = (frame.reshape((h, ls / 3, 3)))
+                frame = (frame.reshape((h, ls // 3, 3)))
                 frame = frame[:, :w, :]
+                
                 res_frame_list.append(frame)
 
         return res_frame_list

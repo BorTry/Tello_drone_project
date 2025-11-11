@@ -83,12 +83,21 @@ class vizualizer:
         plt.tight_layout()
         plt.show()
 
-
 if __name__ == "__main__":
     testing = vizualizer()
 
-    testing.filter_text()
+    print(testing.data["bat"].isnull().sum())
 
-testing = vizualizer()
+    """print(testing.data["bat"])
 
-testing.plot_data(("height"))
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(testing.data.index, testing.data["bat"], label="bat")
+
+    plt.title("title")
+    plt.xlabel("x_label")
+    plt.ylabel("ylabel")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()"""
