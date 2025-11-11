@@ -35,6 +35,7 @@ class recognition_wrapper:
         - name: The name for the wrapper
         """
         self.init_val = init_func()
+        self.last_frame = None
 
         self.gen = generator(init_func, self.init_val, run_once)
 
@@ -79,6 +80,7 @@ class recognition_wrapper:
                 
                     x, y, w, h = detection_objects[index_largest]
                     cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)
+                    cv2.circle(frame, (x + (w//2), y + (h//2)), 5, (0, 0, 255))
 
                 case 6: # inneholder alle hjørner, classification og sikkerhets verdier
                     for (x1,y1,x2,y2,cls,score) in detection_objects:
@@ -86,9 +88,12 @@ class recognition_wrapper:
                         cv2.putText(frame, f"{self.classes[cls]} {score:.2f}", (x1, max(15, y1-7)),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
 
-        cv2.imshow(self.name, frame)
+        self.last_frame = frame
 
-    def get_dominant_object(objects):
+    def show_frame(self):
+        cv2.imshow(self.name, self.last_frame)
+
+    def get_dominant_object(self, objects):
         """
         Returns the dominante object in a list of detection objects
         """
@@ -96,7 +101,7 @@ class recognition_wrapper:
             return None
         
         largest_index = 0
-        mw, mh = largest_index[2], largest_index[3] # max width and height 
+        mw, mh = objects[0][2], objects[0][3] # max width and height 
 
         for index in range(len(objects)):
             x, y, w, h = objects[index]
