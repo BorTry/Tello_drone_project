@@ -4,6 +4,9 @@ DX_DY_CLAMPS = (-10, 10)
 SCALAR = 5
 
 HEIGHT_OFFSET = 200 # px
+FACE_OPTIMAL_SIZE = (320, 320) # 50cm
+FACE_ASSUMED_DISTANCE = 50 # cm
+OPTIMAL_AREA = 102400
 
 class tracker:
     def __init__(self, screen_size, drone):
@@ -28,6 +31,16 @@ class tracker:
 
         return (dx, dy)
     
+    def get_distance_to_face(self, obj):
+        """
+        estimates the distance between a face and the camera
+        """
+        _, _ , w, h = obj
+
+        area = w * h
+        
+        return (OPTIMAL_AREA / area) * FACE_ASSUMED_DISTANCE
+    
     def run(self, obj):
         """
         
@@ -36,6 +49,7 @@ class tracker:
             return
 
         center_point = self.get_center_of_object(obj)
-        dx, dy = self.center_around_point(center_point)
+        dx, dz = self.center_around_point(center_point)
+        dy = (FACE_ASSUMED_DISTANCE - self.get_distance_to_face(obj)) // (SCALAR * 4)
         
-        self.drone.rc(-dx, 0, dy, 0)
+        self.drone.rc(-dx, -dy, dz, 0)
