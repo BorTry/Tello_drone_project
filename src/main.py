@@ -3,38 +3,40 @@ from drone.server.socket_server import server
 from drone.drone_interfaces.drone_interface import drone as dr
 from drone.drone_interfaces.mock_drone import mock_drone as mdr
 
+from pygame import KEYDOWN, K_SPACE
 from threading import Event
-
 
 from drone.gui.screen import screen
 from drone.gui.components.button import button
 from drone.gui.components.text_field import textfield
 from drone.gui.listeners import on_click
+from drone.gui.event_listener import event_listener
 
 from drone.recognition_wrapper import recognition_wrapper
 from drone.tracker import tracker
 
 import cv2
 
-from time import sleep
+automatic_mode = False
 
 # ======================== Mock Drone =========================
 
-quit_event = Event()
+#quit_event = Event()
 
-# #mock_drone = mdr(quit_event)
-# #mock_drone.run()
+# mock_drone = mdr(quit_event)
+# mock_drone.run()
 
-sleep(1)
+#sleep(1)
 
 # ======================= Socket Server =======================
 
-Socket_server = server("0.0.0.0", "0.0.0.0")
+Socket_server = server("0.0.0.0", "192.168.10.1")
 Socket_server.listen()
 
 # =========================== Drone ===========================
 
 drone = dr(Socket_server)
+Socket_server.send("streamon")
 
 # ============================ GUI ============================
 
@@ -57,40 +59,52 @@ BUTTON_SIZE = (175, 75)
 
 BUTTON_START_X = 200
 
+def manuall_controls(func, arg=None):
+    def wrap(x):
+        global automatic_mode
+
+        automatic_mode = False
+        if arg is None:
+            func()
+        else:
+            func(arg)
+
+    return wrap
+
 TAKE_OFF = button(
     (BUTTON_START_X, TITLE_Y + BUTTON_Y_OFFSET), BUTTON_SIZE, 
-    lambda x: drone.takeoff(), 
+    manuall_controls(drone.takeoff), 
     color=BUTTON_COLOR,
     text="Take Off"
 )
 LAND = button(
     (BUTTON_START_X, TITLE_Y + BUTTON_Y_OFFSET + 100), BUTTON_SIZE, 
-    lambda x: drone.land(), 
+    manuall_controls(drone.land),
     color=BUTTON_COLOR,
     text="Land"
 )
 
 UP = button(
     (BUTTON_START_X + 200, TITLE_Y + BUTTON_Y_OFFSET), BUTTON_SIZE, 
-    lambda x: drone.up(20), 
+    manuall_controls(drone.up, arg=50), 
     color=BUTTON_COLOR,
     text="Up"
 )
 DOWN = button(
     (BUTTON_START_X + 200, TITLE_Y + BUTTON_Y_OFFSET + 100), BUTTON_SIZE, 
-    lambda x: drone.down(20), 
+    manuall_controls(drone.down, arg=50), 
     color=BUTTON_COLOR,
     text="Down"
 )
 LEFT = button(
     (BUTTON_START_X + 400, TITLE_Y + BUTTON_Y_OFFSET), BUTTON_SIZE, 
-    lambda x: drone.left(20), 
+    manuall_controls(drone.left, arg=50), 
     color=BUTTON_COLOR,
     text="Left"
 )
 RIGHT = button(
     (BUTTON_START_X + 400, TITLE_Y + BUTTON_Y_OFFSET + 100), BUTTON_SIZE, 
-    lambda x: drone.right(20), 
+    manuall_controls(drone.right, arg=50), 
     color=BUTTON_COLOR,
     text="Right"
 )
@@ -115,8 +129,6 @@ FACE_B_START = (main_screen.size[0] // 2) - (FACE_B_SIZE[0] // 2)
 DISPLAY_Y = BUTTON_Y_OFFSET + TITLE_Y + 250  # definerer at display-verdiene skal nederst på siden (relativt til knappene) 
 CENTER_X = (main_screen.size[0] // 2) - (BUTTON_SIZE[0] // 2)
 START_Y = DISPLAY_Y + FACE_B_SIZE[1]
-
-automatic_mode = False
 
 def switch_mode(comp):
     global automatic_mode
@@ -160,6 +172,7 @@ STAT_TO_FIELD = {
 }
 
 # ================== Face recognition ==================
+
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
 def get_next_image(cap):
@@ -173,9 +186,9 @@ def image_proc(frame):
 def detection(frame):
     return face_cascade.detectMultiScale(
         frame,
-        scaleFactor=1.1,
+        scaleFactor=1.05,
         minNeighbors=5,
-        minSize=(100, 100)
+        minSize=(120, 120),
     )
 
 cam = recognition_wrapper(
@@ -186,13 +199,15 @@ cam = recognition_wrapper(
     run_once=True,
 )
 
-WIDTH = 640
-HEIGHT = 480
+WIDTH = 960
+HEIGHT = 720
 
 track = tracker((WIDTH, HEIGHT), drone)
+timer = main_screen.get_timer(0.5)
 
 def run_function():
     stats = Socket_server.get_text()
+
     if stats == None:
         return
     
@@ -208,10 +223,13 @@ def run_function():
         center_point_obj = track.get_center_of_object(dominant_obj)
         dx, dy = track.center_around_point(center_point_obj)
 
+        print(track.get_distance_to_face(dominant_obj))
+
         cv2.line(cam.last_frame, (center_point_obj[0] - dx, center_point_obj[1] - dy), center_point_obj, (0,0,255))
 
-        if automatic_mode:
-            track.run(dominant_obj)
+        if automatic_mode and timer():
+            print("Running tracker...")
+            track.run(dominant_obj) # only send run the tracker once a second
 
     if data:
         cam.show_frame()
@@ -222,7 +240,7 @@ def on_quit():
 
     Socket_server.stop()
 
-    mock_drone.stop()
+    #mock_drone.stop()
 
 print("opening GUI")
 
