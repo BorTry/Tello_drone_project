@@ -11,7 +11,10 @@ class component_handler:
 
     handles all draw calls for the components given to it
     """
-    def __init__(self):
+    def __init__(self, clock, BGC):
+        self.clock = clock
+        self.BGC = BGC
+
         self.components = []
 
         self.event_comps = {}
@@ -30,6 +33,8 @@ class component_handler:
             self.event_comps[comp.event_listener].append(comp)
 
     def run(self, display):
+        display.fill(self.BGC)
+
         # draw the components
         for component in self.components:
             draw.rect(display, component.color, component.get_rect())
@@ -41,6 +46,10 @@ class component_handler:
                     component.pos[0] + (component.size[0] // 2) - txt.get_width()//2, 
                     component.pos[1] + (component.size[1] // 2) - FONT_SIZE//2)
                 )
+
+        fps = self.clock.get_fps()
+        fps_text = FONT.render(f"FPS: {fps:.1f}", True, (255, 255, 255))
+        display.blit(fps_text, (10, 10))
 
         di.flip()
 
