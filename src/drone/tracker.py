@@ -1,5 +1,10 @@
 from math import sqrt, pow
 
+DX_DY_CLAMPS = (-10, 10)
+SCALAR = 5
+
+HEIGHT_OFFSET = 200 # px
+
 class tracker:
     def __init__(self, screen_size, drone):
         self.t_width, self.t_height = screen_size
@@ -16,15 +21,12 @@ class tracker:
         """
         
         """
-        screen_middle = (self.t_width // 2, self.t_height // 2)
+        screen_middle = (self.t_width // 2, (self.t_height // 2) + HEIGHT_OFFSET)
 
-        dx = point[0] - screen_middle[0]
-        dy = point[1] - screen_middle[1]
+        dx = max(min((screen_middle[0] - point[0]) // SCALAR, DX_DY_CLAMPS[1]), DX_DY_CLAMPS[0])
+        dy = max(min((screen_middle[1] - point[1]) // SCALAR, DX_DY_CLAMPS[1]), DX_DY_CLAMPS[0])
 
         return (dx, dy)
-
-    def get_distance(self, p1, p2):
-        return max(sqrt(pow(p1[0] - p2[0], 2) + pow(p1[1] - p2[1], 2)), 0.001)
     
     def run(self, obj):
         """
@@ -35,6 +37,5 @@ class tracker:
 
         center_point = self.get_center_of_object(obj)
         dx, dy = self.center_around_point(center_point)
-        distance = self.get_distance(center_point, (center_point[0] - dx, center_point[1] - dy))
-
-        self.drone.to(dx, dy, 0, distance/100)
+        
+        self.drone.rc(-dx, 0, dy, 0)
