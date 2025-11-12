@@ -3,6 +3,7 @@ from drone.gui.components.component_handler import component_handler as ch
 from drone.gui.components.component import component
 
 p.init()
+font = p.font.SysFont(None, 24)
 
 class screen:
     def __init__(self, width, height, event_listeners, BGC=(0, 0, 0), fps=60):
@@ -18,15 +19,16 @@ class screen:
         - fps : target fps
         """
         self.size = (width, height)
+        self.clock = p.time.Clock()
 
-        self.comp_handler = ch()
+        self.comp_handler = ch(self.clock, BGC)
 
         self.fps = fps
-        self.clock = p.time.Clock()
 
         self.event_listeners = event_listeners
 
         self.screen = p.display.set_mode([width, height])
+        self.BGC = BGC
         self.screen.fill(BGC)
 
     def run(self, run_func=None, quit_func=None):
@@ -41,6 +43,7 @@ class screen:
             if (self.handle_events()): 
                 run = False
 
+            self.screen.fill(self.BGC)
             self.comp_handler.run(self.screen)
 
             if run_func:
@@ -64,3 +67,19 @@ class screen:
             if event.type == p.QUIT:
                 return True
         return False
+    
+    class timer:
+        def __init__(self, seconds_between_fire):
+            self.secs = seconds_between_fire * 1000 # convert into milliseconds
+            self.last_fired = p.time.get_ticks()
+
+        def has_fired(self):
+            curr_time = p.time.get_ticks()
+
+            if curr_time - self.last_fired > self.secs:
+                self.last_fired = curr_time
+                return True
+            return False
+
+    def get_timer(self, seconds_between_fire):        
+        return self.timer(seconds_between_fire).has_fired
