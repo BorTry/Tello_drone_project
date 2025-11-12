@@ -55,3 +55,6 @@ class drone:
 
     def speed(self, cms): #cm per sekund
         self.send(f"speed {cms}")
+
+    def rc(self, x, y, z, yaw):
+        self.send(f"rc {x} {y} {z} {yaw}")
