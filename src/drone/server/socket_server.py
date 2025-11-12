@@ -44,7 +44,6 @@ class server:
         self.target_address = target_address
 
         self.text_pipe = Queue(max_queue_size)
-        self.image_pipe = Queue(max_queue_size)
         self.max_queue_size = max_queue_size
 
         self.send_socket = socket(AF_INET, SOCK_DGRAM)
@@ -91,7 +90,7 @@ class server:
             decoded_data = data.decode(encoding="utf-8")
             print(f"recieved {decoded_data} from drone")
 
-        self.recieve_thread = listen_thread(self.local_address, RETURN_PORT, self.kill_thread, target=handle_return_data, id=0)
+        self.recieve_thread = listen_thread(self.local_address, TEXT_SEND_PORT, self.kill_thread, target=handle_return_data, id=0)
         self.recieve_thread.start()
 
         self.text_thread = listen_thread(self.local_address, TEXT_PORT, self.kill_thread, target=handle_data, id=1)
@@ -102,28 +101,28 @@ class server:
         Opens the image socket and starts listening.
         """
         variable_data = [
-            ["packets", b""]
+            ["packets", b""],
+            ["frame", None]
         ]
 
         def handle_data(function_variables, data):
             function_variables["packets"] += data
             
             if len(data) != 1460:
+                all_frames = self.__h264decode(function_variables["packets"])
                 last_frame = None
                 
-                for frame in self.__h264decode(function_variables["packets"]):
+                for frame in all_frames:
                     last_frame = frame # get the last frame given to the server
 
                 if not (last_frame is None):
-                    self.image_pipe.put(cvtColor(last_frame, COLOR_BGR2RGB))
+                    function_variables["frame"] = cvtColor(last_frame, COLOR_BGR2RGB)
 
                 function_variables["packets"] = b""
 
         self.image_thread = listen_thread(self.local_address, IMAGE_PORT, self.kill_thread, function_variables=variable_data, target=handle_data, id=2)
         self.image_thread.start()
 
-        self.send("streamon")
-    
     def __h264decode(self, packets):
         res_frame_list = []
         frames = self.decoder.decode(packets)
@@ -158,7 +157,7 @@ class server:
         """
         Returns the next image data in the queue
         """
-        return None if self.image_pipe.empty() else self.image_pipe.get()
+        return self.image_thread.function_variables["frame"]
     
     def stop(self):
         print("Stopping socket server...")
