@@ -7,7 +7,7 @@ def generator(gen_func, gen_val, run_once):
     return wrap
 
 class recognition_wrapper:
-    def __init__(self, init_func, get_image_func, processing_func, detection_func, run_once=False, name="webcam"):
+    def __init__(self, init_func, get_image_func, processing_func, detection_func, run_once=False, name="webcam", draw=True, reuse_value=False):
         """
         Creates a wrapper for cv2 detection
 
@@ -33,9 +33,10 @@ class recognition_wrapper:
         optional:
         - run_once: If the init_func only has to run once or every iteration
         - name: The name for the wrapper
+        - draw: wether or not to draw rectangles around faces
+        - reuse_value: wether to give the previous result back to the detection function. given as an int, for how many values the detection function returns
         """
         self.init_val = init_func()
-        self.last_frame = None
 
         self.gen = generator(init_func, self.init_val, run_once)
 
@@ -45,22 +46,38 @@ class recognition_wrapper:
         self.det = detection_func
 
         self.name = name
+        self.draw_on_image = draw
+        self.reuse_value = reuse_value
+
+        self.last_frame = None
+        self.unproccesed_frame = None
+        self.result = None if not reuse_value else [0 for _ in range(reuse_value)]
 
     def run(self):
-        cap = self.gen() # få tak i capture function
+        cap = self.gen() # get the capture function
 
-        ok, col_frame = self.next(cap) # hent frem neste frame gjennom next funksjonen
+        ok, col_frame = self.next(cap) # get the next frame from the capture function
 
         if not ok:
             return False
 
-        frame = self.proc(col_frame) # prosesser bilder
+        self.unproccesed_frame = col_frame.copy()
 
-        detection_objects = self.det(frame) # finn objekter i bilde 
+        frame = self.proc(col_frame) # process image
 
-        self.draw(detection_objects, col_frame) # tegn på rektangler for hvert objekt
+        if not self.reuse_value:
+            self.result = self.det(frame) # run detection function
 
-        return detection_objects, col_frame
+        if self.reuse_value:
+            result = self.det(frame, self.result) # run detection function
+
+            self.result = self.result if result is None else result
+        
+        if self.draw_on_image:
+            self.draw(self.result, col_frame) # standard draw function
+            cv2.imshow(self.name, col_frame)
+        else:
+            self.last_frame = frame
 
     def draw(self, detection_objects, frame):
         if (len(detection_objects) > 0):
@@ -91,13 +108,15 @@ class recognition_wrapper:
         self.last_frame = frame
 
     def show_frame(self):
-        cv2.imshow(self.name, self.last_frame)
+        if not (self.last_frame is None):
+            cv2.imshow(self.name, self.last_frame)
 
     def get_dominant_object(self, objects):
         """
         Returns the dominante object in a list of detection objects
         """
-        if (len(objects) == 0):
+
+        if (objects is None or len(objects) == 0):
             return None
         
         largest_index = 0
@@ -121,3 +140,12 @@ class recognition_wrapper:
             cap.close()
         elif hasattr(cap, "stop") and callable(cap.stop):
             cap.stop()
+
+    def get_image(self):
+        return self.last_frame
+    
+    def get_unproc_image(self):
+        return self.unproccesed_frame
+    
+    def get_result(self):
+        return self.result
