@@ -18,19 +18,21 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
-automatic_mode = False
-
+MOCK_MODE = False
+automatic_mode = MOCK_MODE
 # ======================== Mock Drone =========================
 
-"""quit_event = Event()
+if MOCK_MODE:
+    quit_event = Event()
 
-mock_drone = mdr(quit_event)
-mock_drone.run()"""
+    mock_drone = mdr(quit_event)
+    mock_drone.run()
 
 # ======================= Socket Server =======================
 
-# "0.0.0.0", "192.168.10.1"
-Socket_server = server("0.0.0.0",  "192.168.10.1")
+target_ip = "0.0.0.0" if MOCK_MODE else "192.168.10.1"
+
+Socket_server = server("0.0.0.0", target_ip)
 Socket_server.listen()
 
 # =========================== Drone ===========================
@@ -40,7 +42,7 @@ Socket_server.send("streamon")
 
 # ============================ GUI ============================
 
-main_screen = screen(1000, 562, (on_click, ), BGC=(25, 25, 25))
+main_screen = screen(1000, 650, (on_click, ), BGC=(25, 25, 25))
 
 TITLE_WIDTH = 400
 TITLE_Y = 25 # the titles position in the y direction
@@ -142,33 +144,47 @@ FACE_TRACK = button(
     color=(0, 200, 255),
     text="Automatic mode"
 )
+# tof,bat,h
+# pitch,roll,yaw
+# vgx,vgy,vgz
+TIME   = textfield((CENTER_X - B_X_OFFSET, START_Y), TEXT_SIZE, f"time: 0", color=(255, 255, 255))
+BATTERY = textfield((CENTER_X, START_Y), TEXT_SIZE, f"battery: 0", color=(255, 255, 255))
+HEIGHT    = textfield((CENTER_X + B_X_OFFSET, START_Y), TEXT_SIZE, f"height: 0", color=(255, 255, 255))
 
-SPEED   = textfield((CENTER_X - B_X_OFFSET, START_Y), TEXT_SIZE, f"SPEED: 0", color=(255, 255, 255))
-BATTERY = textfield((CENTER_X, START_Y), TEXT_SIZE, f"BATTERY: 0", color=(255, 255, 255))
-TIME    = textfield((CENTER_X + B_X_OFFSET, START_Y), TEXT_SIZE, f"TIME: 0", color=(255, 255, 255))
+# ==================== Velocity ====================
 
-# ==================== Acceleration ====================
+PITCH = textfield((CENTER_X - B_X_OFFSET, START_Y + ROW_HEIGHT * 1), TEXT_SIZE, f"PITCH: 0", color=(255, 255, 255))
+ROLL = textfield((CENTER_X, START_Y + ROW_HEIGHT * 1), TEXT_SIZE, f"ROLL: 0", color=(255, 255, 255))
+YAW = textfield((CENTER_X + B_X_OFFSET, START_Y + ROW_HEIGHT * 1), TEXT_SIZE, f"YAW: 0", color=(255, 255, 255))
 
-ACC_X = textfield((CENTER_X - B_X_OFFSET, START_Y + ROW_HEIGHT * 1), TEXT_SIZE, f"X: 0", color=(255, 255, 255))
-ACC_Y = textfield((CENTER_X, START_Y + ROW_HEIGHT * 1), TEXT_SIZE, f"Y: 0", color=(255, 255, 255))
-ACC_Z = textfield((CENTER_X + B_X_OFFSET, START_Y + ROW_HEIGHT * 1), TEXT_SIZE, f"Z: 0", color=(255, 255, 255))
+ACC_X = textfield((CENTER_X - B_X_OFFSET, START_Y + ROW_HEIGHT * 2), TEXT_SIZE, f"vgx: 0", color=(255, 255, 255))
+ACC_Y = textfield((CENTER_X, START_Y + ROW_HEIGHT * 2), TEXT_SIZE, f"vgy: 0", color=(255, 255, 255))
+ACC_Z = textfield((CENTER_X + B_X_OFFSET, START_Y + ROW_HEIGHT * 2), TEXT_SIZE, f"vgz: 0", color=(255, 255, 255))
 
 main_screen.add_component(FACE_TRACK)
 
-main_screen.add_component(SPEED)
+main_screen.add_component(HEIGHT)
 main_screen.add_component(BATTERY)
 main_screen.add_component(TIME)
+
+main_screen.add_component(PITCH)
+main_screen.add_component(ROLL)
+main_screen.add_component(YAW)
 
 main_screen.add_component(ACC_X)
 main_screen.add_component(ACC_Y)
 main_screen.add_component(ACC_Z)
 
 STAT_TO_FIELD = {
+    "h":HEIGHT,
     "bat": BATTERY,
     "time": TIME,
-    "agx":ACC_X,
-    "agy":ACC_Y,
-    "agz":ACC_Z,
+    "pitch":PITCH,
+    "roll":ROLL,
+    "yaw":YAW,
+    "vgx":ACC_X,
+    "vgy":ACC_Y,
+    "vgz":ACC_Z,
 }
 
 # ================== Face recognition ==================
@@ -188,9 +204,9 @@ def get_camera_feed():
     def detection(frame):
         return face_cascade.detectMultiScale(
             frame,
-            scaleFactor=1.05,
-            minNeighbors=5,
-            minSize=(120, 120),
+            scaleFactor=1.1,
+            minNeighbors=10,
+            minSize=(30, 30),
         )
 
     cam = recognition_wrapper(
@@ -297,8 +313,8 @@ def get_angle_grabber():
         reuse_value=3
     )
 
-WIDTH = 720
-HEIGHT = 960
+WIDTH = 640 if MOCK_MODE else 720
+HEIGHT = 480 if MOCK_MODE else 960
 DT = 0.25
 
 track = tracker((WIDTH, HEIGHT), drone, DT)
@@ -342,7 +358,8 @@ def on_quit():
 
     Socket_server.stop()
 
-    #mock_drone.stop()
+    if MOCK_MODE:
+        mock_drone.stop()
 
 print("opening GUI")
 
