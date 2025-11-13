@@ -10,27 +10,27 @@ from drone.gui.screen import screen
 from drone.gui.components.button import button
 from drone.gui.components.text_field import textfield
 from drone.gui.listeners import on_click
-from drone.gui.event_listener import event_listener
 
 from drone.recognition_wrapper import recognition_wrapper
 from drone.tracker import tracker
 
 import cv2
+import mediapipe as mp
+import numpy as np
 
 automatic_mode = False
 
 # ======================== Mock Drone =========================
 
-#quit_event = Event()
+"""quit_event = Event()
 
-# mock_drone = mdr(quit_event)
-# mock_drone.run()
-
-#sleep(1)
+mock_drone = mdr(quit_event)
+mock_drone.run()"""
 
 # ======================= Socket Server =======================
 
-Socket_server = server("0.0.0.0", "192.168.10.1")
+# "0.0.0.0", "192.168.10.1"
+Socket_server = server("0.0.0.0",  "192.168.10.1")
 Socket_server.listen()
 
 # =========================== Drone ===========================
@@ -173,37 +173,138 @@ STAT_TO_FIELD = {
 
 # ================== Face recognition ==================
 
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+def get_camera_feed():
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
-def get_next_image(cap):
-    image_frag = cap.get_image()
+    def get_next_image(cap):
+        image_frag = cap.get_image()
+        is_image = not (image_frag is None)
 
-    return not (image_frag is None), image_frag
+        return is_image, image_frag.copy() if is_image else image_frag
 
-def image_proc(frame):
-    return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    def image_proc(frame):
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-def detection(frame):
-    return face_cascade.detectMultiScale(
-        frame,
-        scaleFactor=1.05,
-        minNeighbors=5,
-        minSize=(120, 120),
+    def detection(frame):
+        return face_cascade.detectMultiScale(
+            frame,
+            scaleFactor=1.05,
+            minNeighbors=5,
+            minSize=(120, 120),
+        )
+
+    cam = recognition_wrapper(
+        lambda:Socket_server, 
+        get_next_image, 
+        image_proc, 
+        detection, 
+        run_once=True,
     )
 
-cam = recognition_wrapper(
-    lambda:Socket_server, 
-    get_next_image, 
-    image_proc, 
-    detection, 
-    run_once=True,
-)
+    return cam
 
-WIDTH = 960
-HEIGHT = 720
+def get_angle_grabber():
+    mp_face_mesh = mp.solutions.face_mesh
 
-track = tracker((WIDTH, HEIGHT), drone)
-timer = main_screen.get_timer(0.5)
+    # 3D model points (a simple canonical face, in mm-ish units)
+    model_points = np.array([
+        (0.0, 0.0, 0.0),             # nose tip
+        (0.0, -63.6, -12.5),         # chin
+        (-43.3, 32.7, -26.0),        # left eye left corner
+        (43.3, 32.7, -26.0),         # right eye right corner
+        (-28.9, -28.9, -24.1),       # left mouth corner
+        (28.9, -28.9, -24.1)         # right mouth corner
+    ], dtype=np.float32)
+
+    face_mesh = mp_face_mesh.FaceMesh(
+            max_num_faces=1,
+            refine_landmarks=True,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5
+        )
+
+    def get_next_image(cap):
+        image_frag = cap.get_image()
+        is_image = not (image_frag is None)
+
+        return is_image, image_frag.copy() if is_image else image_frag
+
+    def image_proc(frame):
+        return frame
+
+    def detection(frame, prev_values):
+        h, w = frame.shape[:2]
+        results = face_mesh.process(frame)
+        
+        if not results.multi_face_landmarks:
+            return None
+
+        face = results.multi_face_landmarks[0]
+
+        image_points = np.array([
+            (face.landmark[1].x * w,   face.landmark[1].y * h),   # nose tip
+            (face.landmark[152].x * w, face.landmark[152].y * h), # chin
+            (face.landmark[33].x * w,  face.landmark[33].y * h),  # left eye left
+            (face.landmark[263].x * w, face.landmark[263].y * h), # right eye right
+            (face.landmark[61].x * w,  face.landmark[61].y * h),  # mouth left
+            (face.landmark[291].x * w, face.landmark[291].y * h), # mouth right
+        ], dtype=np.float32)
+
+        focal_length = w
+        center = (w / 2, h / 2)
+        camera_matrix = np.array([
+            [focal_length, 0, center[0]],
+            [0, focal_length, center[1]],
+            [0, 0, 1]
+        ], dtype=np.float32)
+
+        dist_coeffs = np.zeros((4, 1), dtype=np.float32) # assume zero distortion
+        _, prev_rvec, prev_tvec = prev_values
+
+        if not isinstance(prev_rvec, np.ndarray):
+            prev_rvec = np.array([[0], [0], [0]], dtype=np.float32)
+
+        if not isinstance(prev_tvec, np.ndarray):
+            prev_tvec = np.array([[0], [0], [0]], dtype=np.float32)
+
+        success, rvec, tvec = cv2.solvePnP(
+            model_points, image_points,
+            camera_matrix, dist_coeffs,
+            prev_rvec, prev_tvec,
+            useExtrinsicGuess=True,
+            flags=cv2.SOLVEPNP_ITERATIVE
+        )
+
+        if success:
+            # rotation vector -> rotation matrix
+            R, _ = cv2.Rodrigues(rvec)
+            forward = R @ np.array([0.0, 0.0, -1.0], dtype=np.float32)  # 3D direction in camera space
+            fx, _, fz = forward
+
+            yaw = np.degrees(np.arctan2(fx, fz))
+
+            return [yaw, rvec, tvec]
+        return None
+
+    return recognition_wrapper(
+        lambda:Socket_server, 
+        get_next_image, 
+        image_proc, 
+        detection, 
+        run_once=True,
+        draw=False,
+        name="Yaw grabber",
+        reuse_value=3
+    )
+
+WIDTH = 720
+HEIGHT = 960
+DT = 0.25
+
+track = tracker((WIDTH, HEIGHT), drone, DT)
+timer = main_screen.get_timer(DT)
+cam = get_camera_feed()
+rotation_measure = get_angle_grabber()
 
 def run_function():
     stats = Socket_server.get_text()
@@ -215,24 +316,25 @@ def run_function():
         if stat in STAT_TO_FIELD:
             STAT_TO_FIELD[stat].change_text(f"{stat}: {stats[stat][0]}")
 
-    data = cam.run()
+    cam.run()
+    data = cam.get_result()
 
-    if data and len(data[0]) > 0:
-        dominant_obj = cam.get_dominant_object(data[0])
+    if not (data is None) and len(data) > 0:
+        dominant_obj = cam.get_dominant_object(data)
 
         center_point_obj = track.get_center_of_object(dominant_obj)
         dx, dy = track.center_around_point(center_point_obj)
-
-        print(track.get_distance_to_face(dominant_obj))
 
         cv2.line(cam.last_frame, (center_point_obj[0] - dx, center_point_obj[1] - dy), center_point_obj, (0,0,255))
 
         if automatic_mode and timer():
             print("Running tracker...")
-            track.run(dominant_obj) # only send run the tracker once a second
+            rotation_measure.run()
+            yaw = rotation_measure.get_result()[0]
 
-    if data:
-        cam.show_frame()
+            track.run(dominant_obj, yaw) # only send run the tracker twice a second
+    
+    cam.show_frame()
 
 def on_quit():
     cv2.destroyAllWindows()
