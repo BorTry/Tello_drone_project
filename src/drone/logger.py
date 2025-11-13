@@ -16,7 +16,7 @@ class sub_logger:
         """
         appends a string into a txt file
         """
-        self.root.csv(f"{self.name} -> {string}")
+        self.root.log(f"{self.name} -> {string}")
 
     def log_csv(self, data:object):
         """
