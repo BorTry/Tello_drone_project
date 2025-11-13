@@ -12,9 +12,9 @@ class tracker:
         self.drone = drone
 
         self.x_contr = PID_controller(0.04, 0.1, dt) # left right
-        self.y_contr = PID_controller(0.2, 0.01, dt) # for back
+        self.y_contr = PID_controller(0.2, 0.01, dt, setpoint=FACE_WANTED_DISTANCE) # for back
         self.z_contr = PID_controller(0.05, 0.01, dt) # up down
-        self.yaw_contr = PID_controller(4, 0.01, dt, setpoint=FACE_WANTED_DISTANCE)
+        self.yaw_contr = PID_controller(3, 0.5, dt)
 
     def get_center_of_object(self, obj):
         """
@@ -55,12 +55,10 @@ class tracker:
         dx, dz = self.center_around_point(center_point) # measured face left, right, up and down
         dy = self.get_distance_to_face(obj) # measured distance to face
 
-        print(dy)
-
         x_vel = deadzone(self.x_contr.update(dx))
         y_vel = deadzone(self.y_contr.update(dy))
         z_vel = deadzone(self.z_contr.update(dz))
 
         n_yaw = deadzone(self.yaw_contr.update(angle_error(self.yaw_contr.setpoint, yaw)))
         
-        self.drone.rc(x_vel, -y_vel, -z_vel, n_yaw)
+        #self.drone.rc(x_vel, y_vel, z_vel, -n_yaw)
