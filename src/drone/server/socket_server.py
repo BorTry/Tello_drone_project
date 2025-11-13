@@ -90,10 +90,7 @@ class server:
             decoded_data = data.decode(encoding="utf-8")
             print(f"recieved {decoded_data} from drone")
 
-        self.recieve_thread = listen_thread(self.local_address, TEXT_SEND_PORT, self.kill_thread, target=handle_return_data, id=0)
-        self.recieve_thread.start()
-
-        self.text_thread = listen_thread(self.local_address, TEXT_PORT, self.kill_thread, target=handle_data, id=1)
+        self.text_thread = listen_thread(self.local_address, TEXT_PORT, self.kill_thread, target=handle_data, id=0)
         self.text_thread.start()
 
     def listen_image(self):
@@ -120,7 +117,7 @@ class server:
 
                 function_variables["packets"] = b""
 
-        self.image_thread = listen_thread(self.local_address, IMAGE_PORT, self.kill_thread, function_variables=variable_data, target=handle_data, id=2)
+        self.image_thread = listen_thread(self.local_address, IMAGE_PORT, self.kill_thread, function_variables=variable_data, target=handle_data, id=1)
         self.image_thread.start()
 
     def __h264decode(self, packets):
