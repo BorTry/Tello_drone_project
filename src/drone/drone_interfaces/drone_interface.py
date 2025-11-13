@@ -1,3 +1,7 @@
+from drone.logger import LOGGER
+
+interface_logger = LOGGER.get_logger("interface")
+
 class drone:
     """
     digital equivalen of the tello drone
@@ -15,6 +19,7 @@ class drone:
 
     # ================== Send Commands ==================
     def send(self, cmd):
+        interface_logger.log(f"Sending command {cmd}")
         self.sock.send(cmd)
 
     def takeoff(self):
