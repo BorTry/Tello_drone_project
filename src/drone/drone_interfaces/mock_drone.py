@@ -17,7 +17,7 @@ COMMAND_TO_FUNC = {
     "up": "y_acc",
     "down": "y_acc",
     "cw": "roll",
-    "ccw": "roll"
+    "ccw": "roll",
 }
 
 REVERSE_FUNCTIONS = {
@@ -151,9 +151,7 @@ class mock_drone:
                         case "streamon":
                             self.streamOn = True
                             continue
-                        case "command":
-                            continue
-                        case "go":
+                        case "command"|"go"|"rc":
                             continue
                         case "takeoff"|"land":
                             data.append(20)
@@ -162,7 +160,7 @@ class mock_drone:
 
                     if (data[0] in REVERSE_FUNCTIONS):
                         data[1] *= -1
-
+                    
                     self.stats[COMMAND_TO_FUNC[data[0]]] += data[1]
 
                 except TimeoutError:

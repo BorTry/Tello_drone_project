@@ -19,7 +19,7 @@ class drone:
 
     # ================== Send Commands ==================
     def send(self, cmd):
-        interface_logger.log(f"Sending command {cmd}")
+        interface_logger.log(f"Sending command '{cmd}'")
         self.sock.send(cmd)
 
     def takeoff(self):
