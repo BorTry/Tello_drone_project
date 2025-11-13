@@ -61,7 +61,7 @@ def angle_error(setpoint, measurement):
     e = (e + pi) % (2 * pi) - pi
     return e
 
-def deadzone(u, thresh=2):
+def deadzone(u, thresh=5):
     """
     Filters out the values that are smaller than the threshold
     """
