@@ -1,7 +1,5 @@
 import pandas as pd
-import os
 import matplotlib.pyplot as plt
-import numpy as np
 
 class vizualizer:
     def __init__(self, file_name):
@@ -108,13 +106,3 @@ class vizualizer:
 
     def show_plots(self):
         plt.show()
-if __name__ == "__main__":
-    testing = vizualizer("2025-11-12[17:1:34]")
-
-    testing.plot_data(["vgx", "vgy", "vgz"])
-    testing.plot_data(["agx", "agy", "agz"])
-
-    testing.plot_data("agz")
-    testing.plot_data("bat")
-
-    testing.show_plots()
