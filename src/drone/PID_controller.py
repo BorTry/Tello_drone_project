@@ -1,37 +1,72 @@
+from math import pi
+
+U_MIN = -60
+U_MAX = 60
+
 class PID_controller:
-    def __init__(self, Kp, Ki, Kd, setpoint=0):
+    def __init__(self, Kp:float, Ki:float, dt, u_min=U_MIN, u_max=U_MAX, i_min=None, i_max=None, setpoint:float=0):
+        """
+        PID controller
+
+        required:
+
+        - kp: Proportional k factor
+        - ki: Integrator k factor
+        - dt: Time differation between each update
+
+        optional:
+
+        - u_min: Minimum value for the output of the controller
+        - u_max: Maximum value for the output of the controller
+        - i_min: Minimum value for the input of the controller
+        - i_max: Maximum value for the input of the controller
+        - setpoint: Target value you want the controller to get to, defaults to 0
+        """
+
         self.Kp = Kp
         self.Ki = Ki
-        self.Kd = Kd
+        self.dt = dt
 
         self.setpoint = setpoint
 
         self.integral = 0
-        self.prev_error = 0
 
-        self.first_update = False # unngå store endringer ved første call
+        self.i_min = i_min if i_min is not None else u_min
+        self.i_max = i_max if i_max is not None else u_max
+        self.u_max = u_max
+        self.u_min = u_min
 
-    def update(self, measument, dt):
-        error = self.setpoint - measument
+    def update(self, measurement):
+        e = self.setpoint - measurement
 
-        self.integral += error * dt
+        # Integrate with clamping (anti-windup)
+        self.integral += e * self.dt
+        if self.integral > self.i_max:
+            self.integral = self.i_max
+        elif self.integral < self.i_min:
+            self.integral = self.i_min
 
-        if self.first_update or self.Kd <= 0.0 or self.prev_error == 0:
-            derivate = 0.0
-            self.first_update = False
-        else:
-            derivate = (error / self.prev_error) / dt
+        u = self.Kp * e + self.Ki * self.integral
 
-        self.prev_error = error
-
-        return (
-            self.Kp * error +
-            self.Ki * self.integral +
-            self.Kd * derivate
-        )
+        return max(min(u, self.u_max), self.u_min)
     
     def new_setpoint(self, n_setpoint):
         self.setpoint = n_setpoint
+
+def angle_error(setpoint, measurement):
+    """
+    Wrap a measurement to [-pi, pi]
+    """
+    e = setpoint - measurement
+    e = (e + pi) % (2 * pi) - pi
+    return e
+
+def deadzone(u, thresh=2):
+    """
+    Filters out the values that are smaller than the threshold
+    """
+    return 0 if abs(u) < thresh else int(u)
+
 
 if __name__ == "__main__":
     import time
