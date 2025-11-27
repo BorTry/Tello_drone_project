@@ -86,10 +86,6 @@ class server:
 
             server_logger.log_csv(data_list)
 
-        def handle_return_data(function_variables, data):
-            decoded_data = data.decode(encoding="utf-8")
-            print(f"recieved {decoded_data} from drone")
-
         self.text_thread = listen_thread(self.local_address, TEXT_PORT, self.kill_thread, target=handle_data, id=0)
         self.text_thread.start()
 

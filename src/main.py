@@ -3,7 +3,6 @@ from drone.server.socket_server import server
 from drone.drone_interfaces.drone_interface import drone as dr
 from drone.drone_interfaces.mock_drone import mock_drone as mdr
 
-from pygame import KEYDOWN, K_SPACE
 from threading import Event
 
 from drone.gui.screen import screen
@@ -205,7 +204,7 @@ def get_camera_feed():
         return face_cascade.detectMultiScale(
             frame,
             scaleFactor=1.1,
-            minNeighbors=10,
+            minNeighbors=12,
             minSize=(30, 30),
         )
 
@@ -315,7 +314,7 @@ def get_angle_grabber():
 
 WIDTH = 640 if MOCK_MODE else 720
 HEIGHT = 480 if MOCK_MODE else 960
-DT = 0.25
+DT = 0.5
 
 track = tracker((WIDTH, HEIGHT), drone, DT)
 timer = main_screen.get_timer(DT)
